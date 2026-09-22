@@ -9,6 +9,18 @@ It doesn't change any of your existing task syntax or query logic. Instead, it b
 
 It reorganizes your tasks and reduces the cost of choosing across three dimensions — **Time**, **GTD**, and **Context** — so that action happens faster.
 
+### Features and Demonstration
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/4787af2c-767d-4d2e-83e2-f6df92633920"
+         width="800"
+         controls
+         loop
+         muted>
+    您的浏览器不支持视频播放
+  </video>
+  <p><em>AI 自动生成 PPT 并添加流畅转场动画</em></p>
+</div>
 ---
 
 ## 01 | Why We Built This
