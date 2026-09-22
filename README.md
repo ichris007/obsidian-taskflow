@@ -1,4 +1,5 @@
 # TaskFlow
+[中文](./README.md) | [English](./README_EN.md)
 
 > **你不缺任务。你缺的是下一步。**
 >
