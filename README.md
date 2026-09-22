@@ -173,7 +173,7 @@ TaskFlow 最终想带来的改变，可以浓缩成一句话：
 ## 07｜安装指南
 
 ### 插件展示
-
+![](./screenshot/taskflow_video.mp4)
 
 > **TaskFlow 目前尚未上架 Obsidian 社区插件中心**，你需要通过以下两种方式之一手动安装。
 
