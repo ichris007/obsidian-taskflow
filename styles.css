@@ -1,0 +1,2726 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TaskFlow — UI Stylesheet
+   Design system: DESIGN-cal.md (Cal.com design language)
+
+   Structure
+     1.  Design tokens (--tf-*)
+     2.  Container / shell
+     3.  Quick add
+     4.  Group nav ................ nav-pill-group  (signature component)
+     5.  Tab bar .................. category-tab    (secondary level)
+     6.  Tab panels / scroll
+     7.  Sections (cards)
+     8.  Task items (Tasks plugin output)
+     9.  Overdue
+     10. Empty / placeholder states
+     11. Stats footer ............. quiet band on the canvas (pills + bar)
+     12. Feedback + motion
+     13. Settings panel
+     14. Modal
+     15. Toast
+     16. Legacy settings widgets
+     17. Mobile
+
+   Rules inherited from DESIGN-cal.md
+     - One canvas, one primary: near-black CTA on white canvas.
+     - Monochrome action layer. Colour only for status and badges.
+     - Radius is hierarchical: 8px controls · 12px cards · 999px pills.
+     - One canvas: the stats footer shares it; separation is a hairline,
+       never a second background colour.
+     - No decorative motion, no gradients-on-hover, no glassmorphism.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ═══ 1. Design tokens ═════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surface ─────────────────────────────────────────── */
+  --tf-canvas: #ffffff;
+  --tf-surface-soft: #f8f9fa;
+  --tf-surface-card: #f5f5f5;
+  --tf-surface-strong: #e5e7eb;
+  --tf-surface-dark: #101010;
+  --tf-surface-dark-elevated: #1a1a1a;
+  --tf-hairline: #e5e7eb;
+  --tf-hairline-soft: #f3f4f6;
+
+  /* ── Text ────────────────────────────────────────────── */
+  --tf-ink: #111111;
+  --tf-body: #374151;
+  --tf-muted: #6b7280;
+  --tf-faint: #898989;
+  --tf-on-primary: #ffffff;
+  --tf-on-dark: #ffffff;
+  --tf-on-dark-soft: #a1a1aa;
+
+  /* ── Action ──────────────────────────────────────────── */
+  --tf-primary: #111111;
+  --tf-primary-active: #242424;
+  --tf-primary-disabled: #e5e7eb;
+
+  /* ── Semantic ────────────────────────────────────────── */
+  --tf-accent: #3b82f6;
+  --tf-success: #10b981;
+  --tf-warning: #f59e0b;
+  --tf-error: #ef4444;
+
+  /* ── Status roles (footer dots) ────────────────────────
+     Pastel dots: they sit on the footer's light pill cards,
+     so the hard Tailwind hues would shout. */
+  --tf-c-overdue: #f87171;
+  --tf-c-in-progress: #60a5fa;
+  --tf-c-todo: #94a3b8;
+  --tf-c-migrated: #a78bfa;
+  --tf-c-cancel: #8b8b94;
+  --tf-c-pending: #fdba74;
+  --tf-c-waiting: #fbbf24;
+  --tf-c-done: #34d399;
+  --tf-c-total: #fafafa;
+
+  /* ── Badge pastels (sparingly) ───────────────────────── */
+  --tf-badge-orange: #fb923c;
+  --tf-badge-pink: #ec4899;
+  --tf-badge-violet: #8b5cf6;
+  --tf-badge-emerald: #34d399;
+
+  /* ── Typography ──────────────────────────────────────── */
+  /* Cal Sans is Cal.com's licensed display face and is not publicly
+     distributable. The stack falls back to Inter, then to whatever the
+     active Obsidian theme exposes, preserving weight + tracking. */
+  --tf-font-display: "Cal Sans", "Inter var", Inter, var(--font-interface, inherit),
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --tf-font-ui: var(--font-interface, inherit), Inter, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --tf-font-mono: var(--font-monospace, inherit), "JetBrains Mono", ui-monospace, monospace;
+
+  /* Font sizes ride Obsidian's scale so user font settings keep working;
+     the Cal ratios (weight + tracking) are baked into each component. */
+  --tf-fs-caption: var(--font-ui-smaller, 12px);
+  --tf-fs-body: var(--font-ui-small, 13px);
+  --tf-fs-title: 15px;
+  --tf-fs-display: 22px;
+
+  /* ── Radius (hierarchical) ───────────────────────────── */
+  --tf-r-sm: 6px;
+  --tf-r-md: 8px;
+  --tf-r-lg: 12px;
+  --tf-r-xl: 16px;
+  --tf-r-pill: 9999px;
+
+  /* ── Spacing (4px base) ──────────────────────────────── */
+  --tf-s-1: 4px;
+  --tf-s-2: 8px;
+  --tf-s-3: 12px;
+  --tf-s-4: 16px;
+  --tf-s-5: 24px;
+  --tf-s-6: 32px;
+
+  /* ── Elevation ───────────────────────────────────────── */
+  --tf-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --tf-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --tf-shadow-none: none;
+
+  /* ── Motion ──────────────────────────────────────────── */
+  --tf-ease: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Layout ──────────────────────────────────────────── */
+  --tf-gutter: 16px;
+  --tf-content-max-width: 720px;
+
+  /* ── Settings panel (modern desktop app style) ───────── */
+  --tf-settings-indicator: #6a8695;
+  --tf-switch-on: #7a93a0;
+  --tf-switch-off: #d4d4d4;
+  --tf-switch-knob: #ffffff;
+
+  /* ── Stats footer ──────────────────────────────────────
+     统计栏不再另起一块灰：底色直接跟随画布，只靠顶部发丝线收口，
+     这样它读起来是界面的下边界，而不是贴上去的一条色带。
+     胶囊卡片比画布略深一档（白底上才立得住），用发丝描边替代投影。 */
+  --tf-stat-surface: var(--tf-canvas);
+  --tf-stat-card: #f4f5f7;
+}
+
+/* Dark mode: same geometry, same roles, inverted surfaces.
+   The CTA inverts to near-white so the #111 button never disappears. */
+.theme-dark {
+  --tf-canvas: #1b1b1b;
+  --tf-surface-soft: #212121;
+  --tf-surface-card: #262626;
+  --tf-surface-strong: #2f2f2f;
+  --tf-surface-dark: #000000;
+  --tf-surface-dark-elevated: #0d0d0d;
+  --tf-hairline: #2e2e2e;
+  --tf-hairline-soft: #262626;
+
+  --tf-ink: #fafafa;
+  --tf-body: #d4d4d8;
+  --tf-muted: #a1a1aa;
+  --tf-faint: #71717a;
+
+  --tf-primary: #fafafa;
+  --tf-primary-active: #e4e4e7;
+  --tf-primary-disabled: #2f2f2f;
+  --tf-on-primary: #111111;
+
+  --tf-c-overdue: #f87171;
+  --tf-c-in-progress: #60a5fa;
+  --tf-c-todo: #94a3b8;
+  --tf-c-migrated: #a78bfa;
+  --tf-c-cancel: #8b8b94;
+  --tf-c-pending: #fdba74;
+  --tf-c-waiting: #fbbf24;
+  --tf-c-done: #34d399;
+  --tf-c-total: #fafafa;
+
+  --tf-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --tf-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  --tf-settings-indicator: #9db4c0;
+  --tf-switch-on: #7a93a0;
+  --tf-switch-off: #3f3f46;
+  --tf-switch-knob: #fafafa;
+
+  --tf-stat-surface: var(--tf-canvas);
+  --tf-stat-card: #2a2a2a;
+}
+
+
+/* ═══ 2. Container / shell ═════════════════════════════════════════════════ */
+
+.tasks-view-container {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--tf-canvas);
+  color: var(--tf-body);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  line-height: 1.5;
+}
+
+.tasks-view-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+
+/* ═══ 2.5 Header (workbench banner) ════════════════════════════════════════
+   视图最上方那条：封面图 + 「工作台名 + slogan」+ 右侧日期时间。
+   固定在顶部，不参与下方 tab 内容的滚动。
+
+   封面为什么要这么写（这是本节唯一容易写错的地方）：
+   参考实现（Lyra）用 `height:auto` 的图片 + 像素级 `translateY` 调位置。
+   图片高度按容器宽度等比缩放，而像素位移不缩放 —— 窗口一拉大或缩小，两
+   者的比例关系就变了，固定位移会把图片边缘拖离容器边框，露出底下的一条
+   空白。这里改成两件事：
+     1. 图片 `object-fit:cover`，永远填满容器（多余的裁掉），不可能露底；
+     2. 位置改用百分比 `object-position`，窗口怎么缩放都指向图片的同一处。
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.tf-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-s-3);
+  padding: var(--tf-s-3) var(--tf-gutter) 0;
+}
+
+/* 高度随容器宽度等比变化，上下限兜底：极窄时不压成一条缝，极宽时不吃掉整屏。
+   flex:none 不可省 —— 头部在 flex column 容器里，不锁死的话内容一多就被压扁。 */
+.tf-head-cover {
+  position: relative;
+  flex: none;
+  width: 100%;
+  aspect-ratio: 16 / 2.4;
+  min-height: 72px;
+  max-height: 168px;
+  overflow: hidden;
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-lg);
+  background: var(--tf-surface-soft);
+}
+
+/* 占位肌理：已由「内置默认横幅」（.tf-head-cover-default）取代，
+   不再需要斜纹盖在灰底上。保留 .has-cover 类用于区分「用户自己的图」。 */
+
+/* 内置默认横幅：一层内联 SVG（渐变底 + 淡白水波 + 一句 slogan）。
+   用 slice 等比裁切，等价于图片的 object-fit:cover —— 任何容器比例都不变形、不留白。 */
+.tf-head-cover-default {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.tf-head-cover-default svg,
+.tf-default-banner-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 永远填满容器：图片自身比例与容器不一致时裁掉多余部分，而不是留白 */
+.tf-head-cover-img {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Y 分量由拖动写入内联变量；百分比在任何容器尺寸下都指向图片的同一处 */
+  object-position: 50% var(--tf-cover-pos, 50%);
+  user-select: none;
+  -webkit-user-drag: none;
+  cursor: ns-resize;
+}
+
+.tf-head-cover-ph {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+  letter-spacing: .08em;
+  pointer-events: none;
+}
+.tf-head-cover-ph.is-hidden { display: none; }
+
+/* 悬停/键盘聚焦才浮出控制条：平时不打扰封面本身 */
+.tf-head-cover-bar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity var(--tf-ease), transform var(--tf-ease);
+}
+.tf-head-cover:hover .tf-head-cover-bar,
+.tf-head-cover:focus-within .tf-head-cover-bar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tf-head-cover-btn {
+  cursor: pointer;
+  padding: 5px 10px;
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-ink);
+  background: color-mix(in srgb, var(--tf-canvas) 82%, transparent);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-sm);
+  backdrop-filter: blur(8px);
+  user-select: none;
+  transition: border-color var(--tf-ease), color var(--tf-ease);
+}
+.tf-head-cover-btn:hover {
+  border-color: var(--tf-ink);
+}
+
+/* 隐藏的文件选择器：只作为按钮唤起系统对话框的跳板（头部与设置面板共用） */
+.tf-head-cover-file,
+.tf-file-input-hidden { display: none; }
+
+/* ── 文字行：左「名字 + slogan」，右「日期时间 + 星期/农历」── */
+.tf-head-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tf-s-3);
+  flex-wrap: wrap;
+}
+
+.tf-head-left {
+  display: flex;
+  align-items: baseline;
+  gap: var(--tf-s-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.tf-head-title {
+  font-family: var(--tf-font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  line-height: 1.15;
+  color: var(--tf-ink);
+}
+
+.tf-head-slogan {
+  font-size: var(--tf-fs-body);
+  letter-spacing: .04em;
+  color: var(--tf-muted);
+}
+
+.tf-head-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: auto;
+  text-align: right;
+}
+
+.tf-head-time {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color: var(--tf-ink);
+}
+
+.tf-head-meta {
+  margin-top: 2px;
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-muted);
+}
+
+
+/* ═══ 3. Quick add ═════════════════════════════════════════════════════════ */
+
+.tasks-view-quick-add {
+  flex-shrink: 0;
+  padding: var(--tf-s-2) var(--tf-gutter) var(--tf-s-2);
+}
+
+.tasks-view-quick-add-top {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+}
+
+/* text-input */.tasks-view-quick-add-input.tasks-view-quick-add-input{
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 6px 12px;
+  box-sizing: border-box;
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-md);
+  color: var(--tf-ink);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  outline: none;
+  box-shadow: none;
+  transition: border-color var(--tf-ease), box-shadow var(--tf-ease);
+}.tasks-view-quick-add-input.tasks-view-quick-add-input::placeholder{
+  color: var(--tf-faint);
+}
+
+/* text-input-focused */.tasks-view-quick-add-input.tasks-view-quick-add-input:focus,.tasks-view-quick-add-input.tasks-view-quick-add-input:focus-visible{
+  border-color: var(--tf-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-ink) 12%, transparent);
+}
+
+/* button-icon-circular */.tasks-view-settings-btn.tasks-view-settings-btn,.tasks-view-file-select-btn.tasks-view-file-select-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-pill);
+  box-shadow: none;
+  color: var(--tf-muted);
+  cursor: pointer;
+  transition: background var(--tf-ease), color var(--tf-ease), border-color var(--tf-ease);
+}.tasks-view-settings-btn.tasks-view-settings-btn:hover,.tasks-view-file-select-btn.tasks-view-file-select-btn:hover{
+  background: var(--tf-surface-card);
+  border-color: var(--tf-surface-strong);
+  color: var(--tf-ink);
+}.tasks-view-settings-btn.tasks-view-settings-btn:active,.tasks-view-file-select-btn.tasks-view-file-select-btn:active{
+  background: var(--tf-surface-strong);
+}
+
+.tasks-view-settings-btn svg,
+.tasks-view-file-select-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tasks-view-file-label {
+  flex: 0 0 auto;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-muted);
+  padding: 0 var(--tf-s-1);
+}
+
+
+/* ═══ 4. Group nav — nav-pill-group (signature) ════════════════════════════ */
+
+.tasks-view-group-bar {
+  flex-shrink: 0;
+  padding: 0 var(--tf-gutter) var(--tf-s-3);
+}
+
+.tasks-view-group-segment {
+  display: flex;
+  gap: var(--tf-s-1);
+  width: 100%;
+  padding: 5px;
+  background: var(--tf-surface-soft);
+  border: 1px solid var(--tf-hairline-soft);
+  border-radius: var(--tf-r-pill);
+}
+
+/* category-tab */.tasks-view-group-btn.tasks-view-group-btn{
+  flex: 1 1 0;
+  min-width: 0;
+  height: 32px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--tf-r-pill);
+  box-shadow: none;
+  color: var(--tf-muted);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--tf-ease), color var(--tf-ease), box-shadow var(--tf-ease);
+}.tasks-view-group-btn.tasks-view-group-btn:hover:not(.is-active){
+  color: var(--tf-ink);
+}
+
+/* category-tab-active: white pill floating inside the soft wrapper */.tasks-view-group-btn.tasks-view-group-btn.is-active{
+  background: var(--tf-canvas);
+  color: var(--tf-ink);
+  font-weight: 600;
+  box-shadow: var(--tf-shadow-sm);
+}
+
+.tasks-view-group-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+}
+
+.tasks-view-group-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tasks-view-group-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--tf-fs-body);
+  font-weight: inherit;
+}
+
+
+/* ═══ 5. Tab bar — secondary level (text tabs + ink underline) ═════════════ */
+
+.tasks-view-tab-bar {
+  flex-shrink: 0;
+  padding: 0 var(--tf-gutter);
+}
+
+.tasks-view-tab-segment {
+  display: flex;
+  gap: var(--tf-s-5);
+  align-items: stretch;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--tf-hairline);
+  scrollbar-width: none;
+}
+
+.tasks-view-tab-segment::-webkit-scrollbar {
+  display: none;
+}
+
+/* nav-link */.tasks-view-tab-btn.tasks-view-tab-btn{
+  flex: 0 0 auto;
+  height: 34px;
+  margin-bottom: -1px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--tf-muted);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--tf-ease), border-color var(--tf-ease);
+}.tasks-view-tab-btn.tasks-view-tab-btn:hover:not(.is-active){
+  color: var(--tf-body);
+}.tasks-view-tab-btn.tasks-view-tab-btn.is-active{
+  color: var(--tf-ink);
+  font-weight: 600;
+  border-bottom-color: var(--tf-ink);
+}.tasks-view-tab-btn.tasks-view-tab-btn:focus-visible{
+  outline: 2px solid var(--tf-accent);
+  outline-offset: 2px;
+  border-radius: var(--tf-r-sm);
+}
+
+/* 非当前分组的 tab 按钮整体隐藏（DOM 里保留，仅切可见性） */.tasks-view-tab-btn.tasks-view-tab-btn.is-hidden{ display: none; }
+
+
+/* ═══ 6. Tab panels / scroll ═══════════════════════════════════════════════ */
+
+.tasks-view-tab-panels {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  padding: var(--tf-s-3) 0 0;
+}
+
+.tasks-view-tab-panel {
+  position: absolute;
+  inset: 0;
+  padding: 0 var(--tf-gutter) var(--tf-s-3);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tasks-view-tab-panel.is-hidden {
+  display: none;
+}
+
+/* 分组下还没有 tab 时的占位 */
+.tasks-view-empty-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-s-1);
+  height: 100%;
+  padding: var(--tf-s-6) var(--tf-s-4);
+  text-align: center;
+}
+
+.tasks-view-empty-group.is-hidden { display: none; }
+
+.tasks-view-empty-group-icon {
+  font-size: 20px;
+  line-height: 1;
+  opacity: 0.35;
+}
+
+.tasks-view-empty-group-title {
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-fs-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--tf-ink);
+}
+
+.tasks-view-empty-group-desc {
+  max-width: 30ch;
+  font-size: var(--tf-fs-body);
+  color: var(--tf-muted);
+}
+
+.tasks-view-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color var(--tf-ease);
+}
+
+.tasks-view-scroll:hover {
+  scrollbar-color: var(--tf-surface-strong) transparent;
+}
+
+.tasks-view-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tasks-view-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tasks-view-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.tasks-view-scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--tf-surface-strong);
+}
+
+
+/* ═══ 7. Sections (product-mockup-card: white card, hairline, 12px) ════════ */
+
+.tasks-view-section {
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-lg);
+  overflow: hidden;
+}
+
+.tasks-view-section + .tasks-view-section {
+  margin-top: var(--tf-s-3);
+}
+
+.tasks-view-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+  min-height: 34px;
+  padding: var(--tf-s-1) var(--tf-s-3);
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  transition: background var(--tf-ease);
+}
+
+.tasks-view-section-header:hover {
+  background: var(--tf-surface-soft);
+}
+
+/* 关闭「显示标题」：整行（标题 + 数量徽标 + 箭头）都不出现 */
+.tasks-view-section-header.is-hidden {
+  display: none;
+}
+
+.tasks-view-section-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--tf-faint);
+  transition: transform var(--tf-ease);
+}
+
+.tasks-view-section-chevron svg {
+  width: 14px;
+  height: 14px;
+}
+
+.tasks-view-section-header.is-collapsed .tasks-view-section-chevron,
+.tasks-view-section:has(.tasks-view-section-body.is-collapsed) .tasks-view-section-chevron {
+  transform: rotate(-90deg);
+}
+
+.tasks-view-section-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--tf-fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tf-muted);
+}
+
+/* badge-pill */
+.tasks-view-section-count {
+  flex-shrink: 0;
+  min-width: 22px;
+  padding: 2px 10px;
+  background: var(--tf-surface-card);
+  border-radius: var(--tf-r-pill);
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+  font-weight: 500;
+  text-align: center;
+}
+
+.tasks-view-section-body {
+  padding: 0 var(--tf-s-2) var(--tf-s-2);
+}
+
+.tasks-view-section-body.is-collapsed {
+  display: none;
+}
+
+
+/* ═══ 8. Task items (rendered by the Tasks plugin) ═════════════════════════ */
+
+.tasks-view-section-body .block-language-tasks {
+  padding: 0;
+  margin: 0;
+}
+
+.tasks-view-section-body .tasks-group-heading {
+  margin: var(--tf-s-1) 0 var(--tf-s-1);
+  padding: 0 var(--tf-s-1);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--tf-muted);
+}
+
+.tasks-view-section-body .contains-task-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ── Tasks 插件渲染出的 checkbox ────────────────────────────────────────────
+   Tasks 把 `- [ ]` 渲染成 `<li class="task-list-item"><input
+   class="task-list-item-checkbox" disabled> …`。这个 input 的「可见外观」在
+   Obsidian 里由 `.markdown-preview-view` 作用域下的 CSS 用 appearance:none +
+   background 重绘而成。但本视图容器是 `.tasks-view-container`，并不在那个作用域
+   内，于是原生 input 被抹掉、替代方框又没画出来 → 肉眼看不见 checkbox。
+
+   下面这几条不依赖任何外部作用域，直接把 checkbox 画出来，并随主题变色。
+   注意：这里 input 是 Tasks 直接挂在 <li> 下的，没有 .tasks-view-task-checkbox
+   包裹层，所以必须直接命中 input.task-list-item-checkbox。 */
+.tasks-view-section-body .task-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tf-s-2);
+  /* 超长串（URL 等）允许断行：否则它的 min-content 宽度会把自己整块挤到下一行，
+     只剩 checkbox 孤零零留在第一行 */
+  overflow-wrap: anywhere;
+}
+
+/* ── 子任务层级（Tasks 的 show tree）────────────────────────────────────────
+   开 show tree 后，Tasks 会把子任务渲染成嵌在父 <li> 里的 <ul>。
+   上面那条 li 是 flex 行容器，若不干预，这个 <ul> 会变成与 checkbox、正文
+   **并排**的 flex item（横向排开），而不是换行缩进在下方。
+   这里强制它独占一整行并缩进；更深层级由同样的规则递归生效。
+   注意：不开 show tree 时根本不存在嵌套 ul，这条规则自然空转。 */
+.tasks-view-section-body .task-list-item > ul,
+.tasks-view-section-body .task-list-item > ol {
+  flex: 0 0 100%;
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
+
+.tasks-view-section-body .task-list-item input.task-list-item-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 1.5px solid var(--tf-surface-strong);
+  border-radius: var(--tf-r-sm);
+  background: var(--tf-canvas);
+  cursor: pointer;
+  position: relative;
+  /* 盖过 Tasks/主题可能注入的 background-image 方框，确保我们自己的绘制生效 */
+  background-image: none;
+}
+
+.tasks-view-section-body .task-list-item input.task-list-item-checkbox:checked {
+  background: var(--tf-ink);
+  border-color: var(--tf-ink);
+}
+
+.tasks-view-section-body .task-list-item input.task-list-item-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--tf-canvas);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.tasks-view-task-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-s-1);
+}
+
+.tasks-view-task-description {
+  font-size: var(--tf-fs-body);
+  color: var(--tf-ink);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.tasks-view-task-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--tf-s-1);
+}
+
+/* badge-pill (date chips) */
+.tasks-view-task-date,
+.tasks-view-task-recurrence {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 10px;
+  background: var(--tf-surface-card);
+  border-radius: var(--tf-r-pill);
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+  font-weight: 500;
+}
+
+.tasks-view-task-date.is-due-today {
+  color: var(--tf-warning);
+  background: color-mix(in srgb, var(--tf-warning) 14%, transparent);
+}
+
+.tasks-view-task-date.is-overdue {
+  color: var(--tf-error);
+  background: color-mix(in srgb, var(--tf-error) 14%, transparent);
+  font-weight: 600;
+}
+
+/* Task action buttons — always reachable, never hover-only on touch */
+.tasks-view-task-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}.tasks-view-task-action-btn.tasks-view-task-action-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--tf-r-pill);
+  box-shadow: none;
+  color: var(--tf-faint);
+  cursor: pointer;
+  transition: background var(--tf-ease), color var(--tf-ease);
+}.tasks-view-task-action-btn.tasks-view-task-action-btn:hover{
+  background: var(--tf-surface-card);
+  color: var(--tf-ink);
+}.tasks-view-task-action-btn.tasks-view-task-action-btn.task-edit:hover{ color: var(--tf-accent); }.tasks-view-task-action-btn.tasks-view-task-action-btn.task-delete:hover{ color: var(--tf-error); }
+
+/* Bookmarks */
+.tasks-view-bookmark-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 3px var(--tf-s-2) 3px 32px;
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+}
+
+.tasks-view-bookmark-icon { flex-shrink: 0; }
+
+.tasks-view-bookmark-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ═══ 9. Overdue ═══════════════════════════════════════════════════════════ */
+
+.tasks-view-section--overdue .tasks-view-section-title { color: var(--tf-error); }
+.tasks-view-section--overdue .tasks-view-section-chevron { color: var(--tf-error); }
+
+.tasks-view-section--overdue .tasks-view-section-count {
+  color: var(--tf-error);
+  background: color-mix(in srgb, var(--tf-error) 12%, transparent);
+}
+
+.tasks-view-overdue-banner {
+  margin: var(--tf-s-1) var(--tf-s-2) var(--tf-s-2);
+  border: 1px solid color-mix(in srgb, var(--tf-error) 35%, transparent);
+  border-radius: var(--tf-r-md);
+  overflow: hidden;
+}
+
+.tasks-view-overdue-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-1);
+  padding: 6px var(--tf-s-3) 6px var(--tf-s-2);
+  background: color-mix(in srgb, var(--tf-error) 10%, transparent);
+  cursor: pointer;
+  user-select: none;
+}
+
+.tasks-view-overdue-header:hover {
+  background: color-mix(in srgb, var(--tf-error) 16%, transparent);
+}
+
+.tasks-view-overdue-label {
+  flex: 1;
+  color: var(--tf-error);
+  font-size: var(--tf-fs-body);
+  font-weight: 600;
+}
+
+.tasks-view-overdue-count {
+  padding: 1px 10px;
+  background: color-mix(in srgb, var(--tf-error) 14%, transparent);
+  border-radius: var(--tf-r-pill);
+  color: var(--tf-error);
+  font-size: var(--tf-fs-caption);
+  font-weight: 600;
+}
+
+.tasks-view-overdue-body.is-collapsed { display: none; }
+
+/* ═══ 10. Empty / placeholder states ═══════════════════════════════════════ */
+
+.tasks-view-empty,
+.tasks-view-placeholder,
+.tf-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-s-2);
+  padding: var(--tf-s-6) var(--tf-s-4);
+  text-align: center;
+}
+
+.tasks-view-placeholder { height: 100%; }
+
+.tasks-view-empty-icon,
+.tasks-view-placeholder-icon,
+.tf-empty-state-icon {
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.35;
+}
+
+.tasks-view-empty-title,
+.tf-empty-state-title {
+  margin: 0;
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-fs-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--tf-ink);
+}
+
+.tasks-view-empty-desc,
+.tasks-view-placeholder-sub,
+.tf-empty-state-desc {
+  margin: 0;
+  max-width: 30ch;
+  font-size: var(--tf-fs-body);
+  color: var(--tf-muted);
+}.tasks-view-empty-btn.tasks-view-empty-btn,.tf-add-button.tf-add-button{
+  margin-top: var(--tf-s-2);
+  min-height: 40px;
+  padding: 12px 20px;
+  background: var(--tf-primary);
+  border: none;
+  border-radius: var(--tf-r-md);
+  box-shadow: none;
+  color: var(--tf-on-primary);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-ease);
+}.tasks-view-empty-btn.tasks-view-empty-btn:hover,.tf-add-button.tf-add-button:hover{ background: var(--tf-primary-active); }.tasks-view-empty-btn.tasks-view-empty-btn:active,.tf-add-button.tf-add-button:active{ background: var(--tf-primary-active); }
+
+
+/* ═══ 11. Stats footer — quiet band on the canvas ═════════════════════════ */
+
+.tasks-view-stats {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-s-2);
+  padding: var(--tf-s-3) var(--tf-gutter) var(--tf-s-2);
+  /* 与画布同底 + 一条顶部发丝线：只是画布的下边界，不是独立色带 */
+  background: var(--tf-stat-surface);
+  border-top: 1px solid var(--tf-hairline);
+  color: var(--tf-ink);
+}
+
+/* 折叠态：任务类别胶囊整个收起，底部只剩进度条 + 百分比，纵向更矮 */
+.tasks-view-stats.is-collapsed {
+  gap: var(--tf-s-1);
+}
+.tasks-view-stats.is-collapsed .tasks-view-stat-pills {
+  display: none;
+}
+
+/* 标题整行是一个 button：点一下就地折叠/展开下方的任务类别胶囊 */
+.tasks-view-stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--tf-s-2);
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.tasks-view-stats-header:hover .tasks-view-stats-label,
+.tasks-view-stats-header:hover .tasks-view-stats-chevron {
+  color: var(--tf-ink);
+}
+
+.tasks-view-stats-label {
+  font-size: var(--tf-fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tf-muted);
+  transition: color var(--tf-ease);
+}
+
+.tasks-view-stats-pct {
+  font-family: var(--tf-font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--tf-ink);
+  /* 把百分比与箭头一起推到右侧，label 留在左边 */
+  margin-left: auto;
+}
+
+.tasks-view-stats-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tf-muted);
+  transition: color var(--tf-ease);
+}
+.tasks-view-stats-chevron svg {
+  width: 14px;
+  height: 14px;
+}
+
+.tasks-view-progress-bar {
+  height: 4px;
+  background: var(--tf-hairline);
+  border-radius: var(--tf-r-pill);
+  overflow: hidden;
+}
+
+.tasks-view-progress-fill {
+  height: 100%;
+  min-width: 2px;
+  background: linear-gradient(90deg, var(--tf-accent), var(--tf-success));
+  border-radius: var(--tf-r-pill);
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pills — the compact horizontal form, same pastel palette as the cards. */
+.tasks-view-stat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tasks-view-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  /* 画布是白的，卡片靠「略深一档 + 发丝描边」立住，不再用投影 */
+  background: var(--tf-stat-card);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-pill);
+  cursor: default;
+}
+
+.tasks-view-stat-pill::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: var(--tf-r-pill);
+  background: var(--tf-dot, var(--tf-ink));
+  flex-shrink: 0;
+}
+
+.tasks-view-stat-count {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--tf-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tasks-view-stat-name {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--tf-muted);
+}
+
+/* Dot palette — pastel, legible on the light card. */
+.tasks-view-stat-pill--overdue     { --tf-dot: var(--tf-c-overdue); }
+.tasks-view-stat-pill--in-progress { --tf-dot: var(--tf-c-in-progress); }
+.tasks-view-stat-pill--todo        { --tf-dot: var(--tf-c-todo); }
+.tasks-view-stat-pill--migrated    { --tf-dot: var(--tf-c-migrated); }
+.tasks-view-stat-pill--cancel      { --tf-dot: var(--tf-c-cancel); }
+.tasks-view-stat-pill--pending     { --tf-dot: var(--tf-c-pending); }
+.tasks-view-stat-pill--waiting     { --tf-dot: var(--tf-c-waiting); }
+.tasks-view-stat-pill--done        { --tf-dot: var(--tf-c-done); }
+.tasks-view-stat-pill--total {
+  /* Summary card: neutral dot (the old near-white dot is invisible on a light card). */
+  --tf-dot: var(--tf-muted);
+  box-shadow: inset 0 0 0 1px var(--tf-hairline), var(--tf-shadow-sm);
+}
+
+
+/* ═══ 12. Feedback + motion ════════════════════════════════════════════════ */
+
+.tasks-view-quick-add-feedback {
+  position: absolute;
+  top: 100%;
+  left: var(--tf-gutter);
+  right: var(--tf-gutter);
+  margin-top: var(--tf-s-1);
+  padding: 6px 12px;
+  border-radius: var(--tf-r-md);
+  font-size: var(--tf-fs-body);
+  z-index: 100;
+  animation: tf-fade-in 160ms ease;
+}
+
+.tasks-view-quick-add-feedback.success {
+  background: var(--tf-success);
+  color: var(--tf-on-primary);
+}
+
+.tasks-view-quick-add-feedback.error {
+  background: var(--tf-error);
+  color: var(--tf-on-primary);
+}
+
+@keyframes tf-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Backwards-compatible alias for the animation name used in view.ts */
+@keyframes tasks-view-feedback-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ═══ 13. Settings panel ═══════════════════════════════════════════════════ */
+
+/* ═══ 13. Settings panel ═══════════════════════════════════════════════════
+   现代桌面应用风格（参考稿：设置面板_现代桌面应用风格）
+     · 顶部图标标签栏做分组导航，激活项才显示文字 + 蓝灰指示条
+     · 每个分组是一张 surface-card 圆角卡片，卡片之间靠留白分隔，无描边
+     · 卡片内每行：左侧「标题 + 说明」，右侧控件（输入 / 开关 / 按钮）
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.taskflow-setting-tab {
+  max-width: var(--tf-content-max-width);
+  margin: 0 auto;
+  padding: 0 0 var(--tf-s-6);
+  font-family: var(--tf-font-ui);
+  color: var(--tf-body);
+}
+
+/* ── 顶部图标标签栏 ───────────────────────────────────── */
+.tf-settings-nav {
+  display: flex;
+  align-items: stretch;
+  gap: var(--tf-s-1);
+  margin: 0 0 var(--tf-s-5);
+  padding: 0 var(--tf-s-2);
+  border-bottom: 2px solid var(--tf-hairline);
+}.tf-settings-nav-item.tf-settings-nav-item{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-s-2);
+  min-height: 44px;
+  padding: 0 10px;
+  /* 压在导航栏底边上，指示条与底边同一条线 */
+  margin-bottom: -2px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--tf-muted);
+  font-family: inherit;
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: color var(--tf-ease), border-color var(--tf-ease);
+}.tf-settings-nav-item.tf-settings-nav-item:hover{
+  background: transparent;
+  box-shadow: none;
+  color: var(--tf-ink);
+}.tf-settings-nav-item.tf-settings-nav-item.is-active{
+  color: var(--tf-ink);
+  border-bottom-color: var(--tf-settings-indicator);
+}
+
+.tf-settings-nav-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tf-settings-nav-icon .svg-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* 图标与文字始终同时显示：只有三个标签，纯图标辨识度不够，
+   每次切换都要靠 hover 猜反而更慢。激活态只靠指示条 + 字重区分。 */
+.tf-settings-nav-label {
+  display: inline;
+  white-space: nowrap;
+}
+
+.tf-settings-nav-item.is-active .tf-settings-nav-label {
+  font-weight: 600;
+}
+
+/* ── 分组卡片 ─────────────────────────────────────────── */
+.tf-settings-card {
+  background: var(--tf-surface-card);
+  border-radius: var(--tf-r-lg);
+  padding: var(--tf-s-4) var(--tf-s-5);
+  margin-bottom: var(--tf-s-4);
+}
+
+.tf-settings-card:last-child {
+  margin-bottom: 0;
+}
+
+.tf-settings-card-caption {
+  margin-bottom: var(--tf-s-1);
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+  font-weight: 600;
+}
+
+/* ── 设置行：左说明 / 右控件 ──────────────────────────── */
+.tf-settings-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-4);
+  padding: 14px 0;
+}
+
+.tf-settings-rows > .tf-settings-row:first-child {
+  padding-top: var(--tf-s-1);
+}
+
+.tf-settings-rows > .tf-settings-row:last-child {
+  padding-bottom: var(--tf-s-1);
+}
+
+.tf-settings-row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tf-settings-row-title {
+  color: var(--tf-ink);
+  font-size: var(--tf-fs-title);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.tf-settings-row-desc {
+  margin-top: 2px;
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-body);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.tf-settings-row-control {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tf-s-2);
+  max-width: 62%;
+}
+
+/* 行内控件统一 36px 高，右侧成一排 */.tf-settings-row-control .tf-btn.tf-btn,.tf-settings-row-control .tf-field-input.tf-field-input,.tf-settings-row-control .tf-btn-icon.tf-btn-icon{
+  min-height: 36px;
+  height: 36px;
+}.tf-settings-row-control .tf-btn.tf-btn{
+  padding: 0 14px;
+  font-size: var(--tf-fs-caption);
+  font-weight: 500;
+}.tf-settings-row-control .tf-btn-icon.tf-btn-icon{
+  width: 36px;
+  padding: 0;
+}
+
+/* 行内删除是「安静」的危险操作：默认灰，悬停才红 */.tf-settings-row-control .tf-btn-danger.tf-btn-danger{
+  background: transparent;
+  border-color: transparent;
+  color: var(--tf-muted);
+}.tf-settings-row-control .tf-btn-danger.tf-btn-danger:hover{
+  background: color-mix(in srgb, var(--tf-error) 12%, transparent);
+  color: var(--tf-error);
+}
+
+/* ── 行内输入区（输入框 + 圆形图标按钮 + 校验提示） ───── */
+.tf-settings-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--tf-s-1);
+}
+
+.tf-settings-field-line {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+}.tf-settings-field .tf-field-input.tf-field-input{
+  width: 240px;
+}
+
+.tf-settings-field-message {
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+}
+
+.tf-settings-field-message.error {
+  color: var(--tf-error);
+}.tf-field-input.tf-field-input.tf-error{
+  border-color: var(--tf-error);
+}
+
+/* ── Tabs 面板：分组标题条（通栏背景 + 折叠） ─────────── */
+.tf-settings-group-header.tf-settings-group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+  width: calc(100% + 2 * var(--tf-s-5));
+  min-height: 44px;
+  /* 负 margin 抵消卡片内边距，让标题条左右通栏、贴在卡片顶部 */
+  margin: calc(-1 * var(--tf-s-4)) calc(-1 * var(--tf-s-5)) var(--tf-s-4);
+  padding: 0 var(--tf-s-5);
+  /* 用 surface-strong 而不是 soft：soft 与 card 只差 3 个色阶，等于没有背景，
+     标题照样"不明显"。strong 在浅色下更深、深色下更亮，两个方向都拉得开。 */
+  background: var(--tf-surface-strong);
+  border: none;
+  border-bottom: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-lg) var(--tf-r-lg) 0 0;
+  box-shadow: none;
+  color: var(--tf-ink);
+  font-family: inherit;
+  font-size: var(--tf-fs-body);
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--tf-ease);
+}
+
+.tf-settings-group-header.tf-settings-group-header:hover {
+  background: var(--tf-surface-strong);
+  box-shadow: none;
+  color: var(--tf-ink);
+}
+
+.tf-settings-group-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--tf-faint);
+}
+
+.tf-settings-group-chevron .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.tf-settings-group-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-settings-group-count {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  background: var(--tf-surface-card);
+  border-radius: var(--tf-r-pill);
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+  font-weight: 500;
+}
+
+.tf-settings-group-content.is-collapsed {
+  display: none;
+}
+
+/* ── 文件搜索下拉（Inbox 路径：输入即过滤，点选确认） ── */
+.tf-suggest {
+  position: relative;
+  display: inline-block;
+}
+
+.tf-suggest .tf-field-input.tf-field-input {
+  width: 280px;
+}
+
+/* 双类名加固：Obsidian 原生对列表型容器有样式，这里必须自己压过去 */
+.tf-suggest-list.tf-suggest-list {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 264px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  background: var(--tf-surface-card);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-md);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.tf-suggest-item.tf-suggest-item {
+  display: block;
+  padding: 7px 10px;
+  border-radius: var(--tf-r-sm);
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.tf-suggest-item.tf-suggest-item:hover,
+.tf-suggest-item.tf-suggest-item.is-active {
+  background: var(--tf-surface-soft);
+}
+
+.tf-suggest-item-name {
+  overflow: hidden;
+  color: var(--tf-ink);
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-suggest-item-path {
+  overflow: hidden;
+  color: var(--tf-faint);
+  font-size: var(--tf-fs-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tf-suggest-empty {
+  padding: 8px 10px;
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+}
+
+/* ── 空状态 / 添加行 ──────────────────────────────────── */
+.tf-settings-empty {
+  padding: var(--tf-s-1) 0 var(--tf-s-2);
+  color: var(--tf-faint);
+  font-size: var(--tf-fs-body);
+}
+
+.tf-settings-row.is-add {
+  padding: var(--tf-s-3) 0 var(--tf-s-1);
+}.tf-settings-add-btn.tf-settings-add-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  margin-left: -10px;
+  background: transparent;
+  border: none;
+  border-radius: var(--tf-r-md);
+  box-shadow: none;
+  color: var(--tf-body);
+  font-family: inherit;
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--tf-ease), color var(--tf-ease);
+}.tf-settings-add-btn.tf-settings-add-btn:hover{
+  background: var(--tf-canvas);
+  color: var(--tf-ink);
+}
+
+.tf-settings-add-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tf-settings-add-icon .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── 弹窗内的小标题（配置弹窗仍在用） ────────────────── */
+.taskflow-config-section-title {
+  margin: 0 0 var(--tf-s-4);
+  font-size: var(--tf-fs-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--tf-ink);
+}
+
+/* ── Buttons ───────────────────────────────────────────── */.tf-btn.tf-btn,.tf-btn-primary.tf-btn-primary,.tf-btn-secondary.tf-btn-secondary,.tf-btn-danger.tf-btn-danger,.tf-btn-ghost.tf-btn-ghost,.tasks-view-excluded-add-btn.tasks-view-excluded-add-btn,.tasks-view-query-apply-btn.tasks-view-query-apply-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--tf-r-md);
+  box-shadow: none;
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--tf-ease), border-color var(--tf-ease), color var(--tf-ease);
+}.tf-btn-primary.tf-btn-primary,.tf-btn.tf-btn.tf-btn-primary,.tasks-view-excluded-add-btn.tasks-view-excluded-add-btn,.tasks-view-query-apply-btn.tasks-view-query-apply-btn{
+  background: var(--tf-primary);
+  color: var(--tf-on-primary);
+}.tf-btn-primary.tf-btn-primary:hover,.tasks-view-excluded-add-btn.tasks-view-excluded-add-btn:hover,.tasks-view-query-apply-btn.tasks-view-query-apply-btn:hover{ background: var(--tf-primary-active); }.tf-btn-secondary.tf-btn-secondary{
+  background: var(--tf-canvas);
+  border-color: var(--tf-hairline);
+  color: var(--tf-ink);
+}.tf-btn-secondary.tf-btn-secondary:hover{ background: var(--tf-surface-soft); }.tf-btn-danger.tf-btn-danger{
+  background: var(--tf-error);
+  color: var(--tf-on-primary);
+}.tf-btn-ghost.tf-btn-ghost{
+  background: transparent;
+  color: var(--tf-ink);
+}.tf-btn-ghost.tf-btn-ghost:hover{ background: var(--tf-surface-card); }.tf-btn.tf-btn:disabled,.tf-btn-primary.tf-btn-primary:disabled{
+  background: var(--tf-primary-disabled);
+  color: var(--tf-muted);
+  cursor: not-allowed;
+}
+
+/* button-icon-circular */.tf-btn-icon.tf-btn-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-pill);
+  box-shadow: none;
+  color: var(--tf-muted);
+  cursor: pointer;
+  transition: background var(--tf-ease), color var(--tf-ease);
+}.tf-btn-icon.tf-btn-icon:hover{
+  background: var(--tf-surface-card);
+  color: var(--tf-ink);
+}
+
+.tf-btn-group {
+  display: flex;
+  gap: var(--tf-s-2);
+  align-items: center;
+}
+
+.tf-btn-group-right {
+  justify-content: flex-end;
+}
+
+/* ── Fields ────────────────────────────────────────────── */
+.tf-field { margin-bottom: var(--tf-s-4); }
+.tf-field:last-child { margin-bottom: 0; }
+
+.tf-field-label {
+  display: block;
+  margin-bottom: var(--tf-s-1);
+}
+
+.tf-field-name {
+  display: block;
+  font-size: var(--tf-fs-body);
+  font-weight: 600;
+  color: var(--tf-ink);
+}
+
+.tf-field-desc {
+  display: block;
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-muted);
+}
+
+.tf-field-required::after {
+  content: ' *';
+  color: var(--tf-error);
+}.tf-field-input.tf-field-input,.tf-field-select.tf-field-select,.tf-field-textarea.tf-field-textarea,.tasks-view-excluded-input,.tasks-view-tab-order-input.tasks-view-tab-order-input,.tasks-view-query-textarea.tasks-view-query-textarea{
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-md);
+  color: var(--tf-ink);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  outline: none;
+  box-shadow: none;
+  transition: border-color var(--tf-ease), box-shadow var(--tf-ease);
+}.tf-field-input.tf-field-input,.tf-field-select.tf-field-select{ height: 40px; padding: 10px 14px; }.tf-field-textarea.tf-field-textarea,.tasks-view-query-textarea.tasks-view-query-textarea{
+  min-height: 88px;
+  padding: 10px 14px;
+  font-family: var(--tf-font-mono);
+  line-height: 1.5;
+  /* Tasks 查询逐行解析，必须顶格左对齐：挡掉主题把 textarea 居中的情况 */
+  text-align: left;
+  resize: vertical;
+}.tf-field-input.tf-field-input:focus,.tf-field-select.tf-field-select:focus,.tf-field-textarea.tf-field-textarea:focus,.tasks-view-excluded-input:focus,.tasks-view-tab-order-input.tasks-view-tab-order-input:focus,.tasks-view-query-textarea.tasks-view-query-textarea:focus{
+  border-color: var(--tf-ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-ink) 12%, transparent);
+}.tf-field-input.tf-field-input:disabled,.tf-field-textarea.tf-field-textarea:disabled{
+  background: var(--tf-surface-card);
+  color: var(--tf-muted);
+}.tasks-view-tab-order-input.tasks-view-tab-order-input{
+  width: 64px;
+  height: 32px;
+  text-align: center;
+}
+
+.tf-field-message,
+.tf-hint {
+  margin-top: var(--tf-s-1);
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-muted);
+}
+
+.tf-error,
+.tf-field-message.error { color: var(--tf-error); }
+
+.tf-success,
+.tf-field-message.success { color: var(--tf-success); }
+
+/* ── iOS 风格开关（设置面板与弹窗共用） ───────────────── */
+.tf-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 真身 checkbox 收到 0 尺寸里，只留视觉轨道；键盘焦点仍然可达 */.tf-switch-input.tf-switch-input{
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.tf-switch-track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 24px;
+  border-radius: var(--tf-r-pill);
+  background: var(--tf-switch-off);
+  transition: background var(--tf-ease);
+}
+
+.tf-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--tf-switch-knob);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+  transition: transform var(--tf-ease);
+}
+
+.tf-switch-input:checked ~ .tf-switch-track {
+  background: var(--tf-switch-on);
+}
+
+.tf-switch-input:checked ~ .tf-switch-track .tf-switch-thumb {
+  transform: translateX(20px);
+}
+
+.tf-switch:hover .tf-switch-input:not(:checked) ~ .tf-switch-track {
+  background: color-mix(in srgb, var(--tf-switch-off) 82%, var(--tf-ink));
+}
+
+.tf-switch-input:focus-visible ~ .tf-switch-track {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tf-settings-indicator) 35%, transparent);
+}
+
+.tf-switch-input:disabled ~ .tf-switch-track {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tf-switch-caption {
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+  white-space: nowrap;
+}
+
+/* ── 图标下拉选择器（分组图标） ─────────────────────────
+   触发器是一个按钮：左侧渲染当前图标，中间是图标名，右侧是下拉箭头。
+   面板默认 portal 到 document.body（position: fixed，z-index 远高于弹窗），
+   彻底逃出弹窗表单的 overflow 裁切；无 body 的环境回落到字段内（absolute）。
+   另有一层 fixed 遮罩，点遮罩即收起；弹窗关闭时由 teardown 统一清理。 */
+.tf-icon-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: left;
+}
+.tf-icon-trigger:hover { border-color: var(--tf-ink); }
+.tf-icon-trigger-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+}
+.tf-icon-trigger-icon svg { width: 18px; height: 18px; }
+.tf-icon-trigger-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tf-icon-trigger-caret { flex: 0 0 auto; opacity: 0.6; }
+.tf-icon-trigger-caret::after {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+}
+
+.tf-icon-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+}
+.tf-icon-panel {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-s-2);
+  padding: 8px;
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.tf-theme-dark .tf-icon-panel { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
+.tf-icon-panel.is-hidden { display: none; }
+
+.tf-icon-search {
+  width: 100%;
+  box-sizing: border-box;
+  height: 34px;
+  padding: 8px 12px;
+  background: var(--tf-surface-card);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-md);
+  color: var(--tf-ink);
+  font-family: var(--tf-font-ui);
+  font-size: var(--tf-fs-body);
+  outline: none;
+}
+.tf-icon-search:focus { border-color: var(--tf-ink); }
+
+.tf-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.tf-icon-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--tf-r-md);
+  color: var(--tf-ink);
+  cursor: pointer;
+  font-family: var(--tf-font-ui);
+  font-size: 10px;
+}
+.tf-icon-tile:hover,
+.tf-icon-tile:focus-visible {
+  background: var(--tf-surface-card);
+  border-color: var(--tf-hairline);
+}
+.tf-icon-tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+}
+.tf-icon-tile-icon svg { width: 18px; height: 18px; }
+.tf-icon-tile-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+  text-align: center;
+}
+.tf-icon-tile-custom {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: flex-start;
+  min-height: 40px;
+  gap: var(--tf-s-2);
+  background: var(--tf-surface-card);
+  border-color: var(--tf-hairline);
+  font-size: var(--tf-fs-caption);
+}
+.tf-icon-empty {
+  grid-column: 1 / -1;
+  padding: 12px;
+  text-align: center;
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+}
+
+
+.tf-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--tf-faint);
+  cursor: grab;
+}
+
+/* ── Config modal tab rows ─────────────────────────────── */
+/* 滚动交给 .tf-modal-scroll，这里不再套一层滚动容器，避免双滚动条 */
+.taskflow-config-tabs-body > * + * { margin-top: var(--tf-s-2); }
+
+.taskflow-config-section { margin-bottom: var(--tf-s-4); }
+
+.taskflow-config-tab-item {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+  padding: var(--tf-s-2) var(--tf-s-3);
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-md);
+  margin-bottom: var(--tf-s-2);
+}.taskflow-config-tab-btn.taskflow-config-tab-btn{
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  text-align: left;
+  color: var(--tf-ink);
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.taskflow-config-tab-info {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.taskflow-config-tab-label {
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  color: var(--tf-ink);
+}.taskflow-config-tab-add,.taskflow-config-add-button.taskflow-config-add-button{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 12px 20px;
+  background: var(--tf-canvas);
+  border: 1px dashed var(--tf-hairline);
+  border-radius: var(--tf-r-md);
+  box-shadow: none;
+  color: var(--tf-ink);
+  font-size: var(--tf-fs-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--tf-ease), border-color var(--tf-ease);
+}.taskflow-config-tab-add:hover,.taskflow-config-add-button.taskflow-config-add-button:hover{
+  background: var(--tf-surface-soft);
+  border-color: var(--tf-surface-strong);
+}
+
+.taskflow-config-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-1);
+  flex-shrink: 0;
+}.taskflow-config-tab-delete.taskflow-config-tab-delete{ color: var(--tf-error); }
+
+.taskflow-config-empty {
+  padding: var(--tf-s-5);
+  text-align: center;
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-body);
+}
+
+
+/* ═══ 14. Modal ════════════════════════════════════════════════════════════ */
+
+/* 弹窗全部内容都在 contentEl 内部，自己限高、自己滚动。
+   不碰 modalEl / setTitle，也不依赖 .modal 的 flex 布局或祖先的 overflow，
+   因此在任何 Obsidian 版本上表现一致：
+     .tf-modal          限高 + flex column，唯一的布局上下文
+       .tf-modal-title  固定
+       .tf-modal-form   唯一滚动区
+       .tf-modal-buttons 固定 —— 永远可见 */
+.tf-modal {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: min(60vh, 520px);
+  overflow: hidden;
+  padding: 0;
+  background: var(--tf-canvas);
+  font-family: var(--tf-font-ui);
+}
+
+.tf-modal-title {
+  flex-shrink: 0;
+  margin: 0;
+  padding: var(--tf-s-5) var(--tf-s-5) var(--tf-s-4);
+  background: var(--tf-canvas);
+  font-family: var(--tf-font-display);
+  font-size: var(--tf-fs-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--tf-ink);
+}
+
+.tf-modal-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--tf-s-5) var(--tf-s-4);
+}
+
+.tf-modal-buttons {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tf-s-3);
+  margin: 0;
+  padding: var(--tf-s-4) var(--tf-s-5);
+  border-top: 1px solid var(--tf-hairline);
+  background: var(--tf-canvas);
+}
+
+.tf-modal-buttons-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+}
+
+.tf-modal-status {
+  min-width: 0;
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-muted);
+}
+
+.tf-modal-status.is-error { color: var(--tf-error); }
+.tf-modal-status.is-success { color: var(--tf-success); }
+
+
+/* ═══ 15. Toast ════════════════════════════════════════════════════════════ */
+
+.tf-toast {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-2);
+  padding: var(--tf-s-2) var(--tf-s-3);
+  background: var(--tf-surface-dark);
+  border-radius: var(--tf-r-md);
+  color: var(--tf-on-dark);
+  font-size: var(--tf-fs-body);
+  box-shadow: var(--tf-shadow-md);
+}
+
+.tf-toast-icon { flex-shrink: 0; }
+.tf-toast-content { flex: 1; min-width: 0; }.tf-toast-close.tf-toast-close{
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--tf-on-dark-soft);
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.tf-toast-success .tf-toast-icon { color: var(--tf-success); }
+.tf-toast-error .tf-toast-icon   { color: var(--tf-error); }
+.tf-toast-info .tf-toast-icon    { color: var(--tf-accent); }
+
+
+/* ═══ 16. Legacy settings widgets ══════════════════════════════════════════ */
+
+.tasks-view-settings-heading {
+  margin: var(--tf-s-5) 0 var(--tf-s-2);
+  padding-bottom: var(--tf-s-1);
+  border-bottom: 1px solid var(--tf-hairline);
+  font-size: var(--tf-fs-title);
+  font-weight: 600;
+  color: var(--tf-ink);
+}
+
+.tasks-view-query-wrapper { margin-top: var(--tf-s-1); }
+
+.tasks-view-excluded-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: var(--tf-s-2) 0;
+}
+
+.tasks-view-excluded-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-s-1);
+  padding: 4px 6px 4px 12px;
+  background: var(--tf-surface-card);
+  border-radius: var(--tf-r-pill);
+  color: var(--tf-body);
+  font-size: var(--tf-fs-caption);
+  font-weight: 500;
+}.tasks-view-excluded-chip-remove.tasks-view-excluded-chip-remove{
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--tf-faint);
+  font-size: 1.1em;
+  line-height: 1;
+  cursor: pointer;
+}.tasks-view-excluded-chip-remove.tasks-view-excluded-chip-remove:hover{ color: var(--tf-error); }.tasks-view-excluded-add.tasks-view-excluded-add{
+  display: flex;
+  gap: var(--tf-s-2);
+  align-items: center;
+  padding: var(--tf-s-1) 0 var(--tf-s-3);
+}
+
+.excluded-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: var(--tf-s-2) 0;
+}
+
+.excluded-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-s-1);
+  padding: 4px 6px 4px 12px;
+  background: var(--tf-surface-card);
+  border-radius: var(--tf-r-pill);
+  color: var(--tf-body);
+  font-size: var(--tf-fs-caption);
+}.excluded-tag-remove.excluded-tag-remove{
+  padding: 0 2px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--tf-faint);
+  cursor: pointer;
+}.excluded-tag-remove.excluded-tag-remove:hover{ color: var(--tf-error); }
+
+.excluded-tags-placeholder {
+  padding: var(--tf-s-2) 0;
+  color: var(--tf-faint);
+  font-size: var(--tf-fs-caption);
+}
+
+.tasks-view-file-suggest {
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-lg);
+  box-shadow: var(--tf-shadow-md);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tasks-view-file-suggestion-path {
+  padding: var(--tf-s-2) var(--tf-s-3);
+  font-family: var(--tf-font-mono);
+  font-size: var(--tf-fs-body);
+  color: var(--tf-ink);
+}
+
+.tasks-view-file-suggestion-meta {
+  padding: 0 var(--tf-s-3) var(--tf-s-2);
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-muted);
+}
+
+.tasks-view-file-suggest .suggestion-item:hover,
+.tasks-view-file-suggest .suggestion-item.is-selected {
+  background: var(--tf-surface-soft);
+}
+
+
+/* ═══ 17. Mobile ═══════════════════════════════════════════════════════════ */.is-mobile .tasks-view-quick-add-input.tasks-view-quick-add-input,.is-mobile .tasks-view-settings-btn.tasks-view-settings-btn,.is-mobile .tasks-view-file-select-btn.tasks-view-file-select-btn{
+  height: 40px;
+}.is-mobile .tasks-view-settings-btn.tasks-view-settings-btn,.is-mobile .tasks-view-file-select-btn.tasks-view-file-select-btn{
+  width: 40px;
+}.is-mobile .tasks-view-group-btn.tasks-view-group-btn,.is-mobile .tasks-view-tab-btn.tasks-view-tab-btn{ height: 44px; }.is-mobile .tasks-view-tab-btn.tasks-view-tab-btn{ border-bottom-width: 3px; }
+
+.is-mobile .tasks-view-section-header { min-height: 48px; }
+
+.is-mobile .tasks-view-task-action-btn.tasks-view-task-action-btn,.is-mobile .tf-btn-icon.tf-btn-icon{ width: 36px; height: 36px; }
+
+/* No hover on touch: keep actions permanently visible */
+.is-mobile .tasks-view-task-actions { opacity: 1; }
+
+/* 头部：窄屏收紧留白与字号；封面高度交给 min-height 兜底，不再压制比例 */
+.is-mobile .tf-head { padding: var(--tf-s-2) var(--tf-s-3) 0; gap: var(--tf-s-2); }
+.is-mobile .tf-head-title { font-size: 20px; }
+.is-mobile .tf-head-time { font-size: 14px; }
+.is-mobile .tf-head-cover { border-radius: var(--tf-r-md); }
+
+/* 设置面板：窄屏把「左说明 / 右控件」竖排，避免控件被压扁 */
+@media (max-width: 720px) {
+  .tf-settings-row { flex-direction: column; align-items: stretch; gap: var(--tf-s-2); }
+  .tf-settings-row-control { justify-content: flex-start; max-width: none; flex-wrap: wrap; }
+  .tf-settings-field { align-items: stretch; }.tf-settings-field .tf-field-input.tf-field-input{ width: 100%; }
+}
+
+.is-mobile .tf-settings-row { flex-direction: column; align-items: stretch; gap: var(--tf-s-2); }
+.is-mobile .tf-settings-row-control { justify-content: flex-start; max-width: none; flex-wrap: wrap; }
+.is-mobile .tf-settings-field { align-items: stretch; }.is-mobile .tf-settings-field .tf-field-input.tf-field-input{ width: 100%; }.is-mobile .tf-settings-nav-item.tf-settings-nav-item{ min-height: 48px; }.is-mobile .tf-settings-add-btn.tf-settings-add-btn{ min-height: 44px; }
+
+.is-mobile .tasks-view-stats {
+  padding-bottom: calc(var(--tf-s-4) + env(safe-area-inset-bottom, 0px));
+}
+
+/* ═══ 18. 面板模块：今日概览 / 重要提醒 ═════════════════════════════════
+   两个模块都在快捷输入框上方、并排展示（.tf-panels）。
+   关掉其一 → 另一个 flex:1 占满整行；两个都关 → buildShell 不创建整块。 */
+.tf-panels {
+  display: flex;
+  flex-wrap: wrap; /* 窗口变窄时，重要提醒模块自动换行到下一行 */
+  gap: var(--tf-s-3);
+  padding: var(--tf-s-3) var(--tf-gutter) 0;
+  align-items: stretch;
+}
+
+.tf-today,
+.tf-important {
+  flex: 1 1 300px;
+  min-width: 240px; /* 不足以并排时，重要提醒整块换行到下方 */
+  display: flex;
+  gap: var(--tf-s-3);
+  padding: var(--tf-s-2) var(--tf-s-3);
+  background: var(--tf-surface-card);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-lg);
+}
+/* 今日概览：双环在左、指标两列在右，整体一行、尽量矮；极窄时内部再换行兜底 */
+.tf-today {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.tf-important {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* 双环（conic-gradient 圆盘，--p 控制进度角度） */
+.tf-today-rings {
+  display: flex;
+  gap: var(--tf-s-3);
+  flex-shrink: 0; /* 内部换行兜底时，环不被压扁 */
+}
+.tf-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.tf-ring-dial {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: conic-gradient(var(--tf-accent) calc(var(--p, 0) * 1%), var(--tf-hairline) 0);
+}
+.tf-ring-hole {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: var(--tf-surface-card);
+}
+.tf-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tf-ink);
+  font-variant-numeric: tabular-nums;
+}
+.tf-ring-label {
+  font-size: var(--tf-fs-caption);
+  color: var(--tf-muted);
+}
+
+/* 5 个指标 chip：双环右侧两列排列，必要时缩小字体 */
+.tf-today-stats {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  column-gap: 16px;
+  row-gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: start;
+}
+.tf-today-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--tf-canvas);
+  border: 1px solid var(--tf-hairline);
+  border-radius: var(--tf-r-pill);
+}
+.tf-today-stat-count {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--tf-ink);
+  font-variant-numeric: tabular-nums;
+}
+.tf-today-stat-name {
+  font-size: 10px;
+  line-height: 1;
+  color: var(--tf-muted);
+}
+.tf-today-overdue.is-alert {
+  border-color: color-mix(in srgb, var(--tf-error) 45%, var(--tf-hairline));
+}
+.tf-today-overdue.is-alert .tf-today-stat-count {
+  color: var(--tf-error);
+}
+
+/* 重要提醒列表（Tasks 渲染，插件不注入；沿用二级 tab 的 checkbox 重绘与换行缩进） */
+.tf-important-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tf-s-1);
+  overflow: visible; /* 严格不滚动：超出 3 条用「更多任务」折叠，而非滚动条 */
+}
+.tf-important-body .block-language-tasks { padding: 0; margin: 0; }
+.tf-important-body .contains-task-list { margin: 0; padding: 0; list-style: none; }
+.tf-important-body .task-list-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--tf-s-2);
+  overflow-wrap: anywhere;
+}
+.tf-important-body .task-list-item > ul,
+.tf-important-body .task-list-item > ol {
+  flex: 0 0 100%;
+  list-style: none;
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
+.tf-important-body .task-list-item input.task-list-item-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 1.5px solid var(--tf-surface-strong);
+  border-radius: var(--tf-r-sm);
+  background: var(--tf-canvas);
+  cursor: pointer;
+  position: relative;
+  background-image: none;
+}
+.tf-important-body .task-list-item input.task-list-item-checkbox:checked {
+  background: var(--tf-ink);
+  border-color: var(--tf-ink);
+}
+.tf-important-body .task-list-item input.task-list-item-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--tf-canvas);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.tf-important-more {
+  align-self: flex-start;
+  cursor: pointer;
+  font-size: var(--tf-fs-caption);
+  font-weight: 600;
+  color: var(--tf-accent);
+  user-select: none;
+  padding: 2px 0;
+}
+.tf-important-more.is-hidden { display: none; }
+.tf-important-more:hover { text-decoration: underline; }
+
+.tf-important-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--tf-s-3);
+  text-align: center;
+  color: var(--tf-muted);
+}
+.tf-important-empty-icon { font-size: 18px; }
+.tf-important-empty-title { font-size: var(--tf-fs-body); font-weight: 600; color: var(--tf-ink); }
+.tf-important-empty-desc { font-size: var(--tf-fs-caption); }
+
+.is-mobile .tf-panels { flex-direction: column; }
+
+/* ═══ 19. 设置面板新增 UI：分段控件 / 提醒 / 关于页 ══════════════════════════
+   只服务设置面板里这几块：
+     · .tf-segmented       「主窗口 / 右侧边栏」二选一
+     · .tf-settings-note   卡片 7 的提醒行
+     · .tf-about-*         「关于」页（简介 / GitHub / 作者）
+   颜色一律走 --tf-* 令牌，深浅主题自动跟着反转。
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 分段控件：二选一，选中项有底色 ── */
+.tf-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--tf-surface-soft);
+  border: 1px solid var(--tf-hairline-soft);
+  border-radius: var(--tf-r-pill);
+}
+.tf-segmented-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: none;
+  border: none;
+  border-radius: var(--tf-r-pill);
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-body);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--tf-ease), color var(--tf-ease);
+}
+.tf-segmented-btn:hover { color: var(--tf-ink); }
+/* 选中项 = 实心高对比：浅色主题下是近黑、深色主题下是近白（--tf-primary 在深色主题
+   整体反转）。原来用 --tf-surface-card 当选中底色，在浅色主题里就是「白底浅灰面」，
+   几乎看不出哪个被选中。 */
+.tf-segmented-btn.is-active,
+.tf-segmented-btn.is-active:hover {
+  background: var(--tf-primary);
+  color: var(--tf-on-primary);
+  font-weight: 600;
+  box-shadow: var(--tf-shadow-sm);
+}
+.tf-segmented-btn-icon {
+  display: inline-flex;
+  align-items: center;
+}
+.tf-segmented-btn-icon svg { width: 14px; height: 14px; }
+
+/* ── 提醒行（全局卡片 7）── */
+.tf-settings-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: var(--tf-s-2) var(--tf-s-3);
+  background: var(--tf-surface-soft);
+  border: 1px solid var(--tf-hairline-soft);
+  border-radius: var(--tf-r-md);
+  color: var(--tf-ink);
+  font-size: var(--tf-fs-body);
+  line-height: 1.5;
+}
+.tf-settings-note-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--tf-accent);
+}
+.tf-settings-note-icon svg { width: 15px; height: 15px; }
+.tf-settings-note-text { min-width: 0; }
+
+/* ── 关于页 ── */
+.tf-about-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-s-3);
+  margin-bottom: var(--tf-s-3);
+}
+.tf-about-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--tf-r-md);
+  /* 图标自带品牌渐变底，这里不再铺底色（否则蓝底叠蓝块，糊成一团） */
+  background: none;
+  color: #ffffff;
+}
+.tf-about-mark svg { width: 40px; height: 40px; }
+.tf-about-title {
+  color: var(--tf-ink);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.tf-about-subtitle {
+  margin-top: 2px;
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-caption);
+}
+.tf-about-text {
+  color: var(--tf-muted);
+  font-size: var(--tf-fs-body);
+  line-height: 1.7;
+}
+.tf-about-bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  color: var(--tf-ink);
+  font-size: var(--tf-fs-body);
+  line-height: 1.6;
+}
+.tf-about-bullet-dot {
+  flex-shrink: 0;
+  color: var(--tf-accent);
+}
+.tf-about-bullet-text { min-width: 0; }
+
+/* ── 外链按钮 + 可点网址 ── */
+.tf-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  background: var(--tf-accent);
+  color: #ffffff;
+  border-radius: var(--tf-r-md);
+  font-size: var(--tf-fs-body);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--tf-ease);
+}
+.tf-link-btn:hover { opacity: 0.9; color: #ffffff; }
+.tf-link-btn-icon {
+  display: inline-flex;
+  align-items: center;
+}
+.tf-link-btn-icon svg { width: 14px; height: 14px; }
+.tf-link-url {
+  display: block;
+  margin-top: 6px;
+  color: var(--tf-accent);
+  font-size: var(--tf-fs-caption);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.tf-link-url:hover { text-decoration: underline; }
+
+/* 三段式分段控件（界面语言：跟随系统 / 中文 / English）：
+   默认 .tf-segmented 是 inline-flex，三档一起会顶到行尾；这里让它占满整行、
+   每档等分，短标签（English）与长标签（跟随系统）看起来才平衡。 */
+.tf-segmented-wide {
+  display: flex;
+  width: 100%;
+  max-width: 420px;
+}
+.tf-segmented-wide .tf-segmented-btn {
+  flex: 1;
+  justify-content: center;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+/* 关于页简介拆成两段后，段间留一点呼吸，别挤成一坨 */
+.tf-about-text + .tf-about-text { margin-top: 8px; }
+
+/* ═══ 20. 侧边栏（窄容器）自适配 ═══════════════════════════════════════════
+   插件可以开在主窗口，也可以开在右侧边栏（默认 300px 上下，还能拖更窄）。
+   窄容器下照搬主窗口的排布会出问题：工作台名把日期时间挤掉、两块面板各占
+   一半宽度、内容被压成一条。这里针对侧边栏做专项收敛：
+     1. 头部：字号降一档，右列从「靠右」改为「靠左」，允许换行
+     2. 面板：两块改为上下堆叠，不再各占一半
+     3. 一级 tab：按钮字号收紧，避免文字被截断
+     4. 通栏内边距整体收窄，把宽度让给内容
+   ═══════════════════════════════════════════════════════════════════════════ */
+.mod-right-split .tf-head,
+.mod-left-split .tf-head {
+  padding: var(--tf-s-2) var(--tf-s-2) 0;
+}
+.mod-right-split .tf-head-title,
+.mod-left-split .tf-head-title { font-size: 19px; }
+.mod-right-split .tf-head-slogan,
+.mod-left-split .tf-head-slogan { font-size: var(--tf-fs-caption); }
+.mod-right-split .tf-head-right,
+.mod-left-split .tf-head-right {
+  align-items: flex-start;
+  margin-left: 0;
+  text-align: left;
+}
+.mod-right-split .tf-head-time,
+.mod-left-split .tf-head-time { font-size: 14px; }
+
+/* 窄容器下两块面板上下堆叠（主窗口仍是并排） */
+.mod-right-split .tf-panels,
+.mod-left-split .tf-panels {
+  flex-direction: column;
+  padding-left: var(--tf-s-2);
+  padding-right: var(--tf-s-2);
+}
+.mod-right-split .tf-today,
+.mod-right-split .tf-important,
+.mod-left-split .tf-today,
+.mod-left-split .tf-important {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mod-right-split .tasks-view-quick-add,
+.mod-left-split .tasks-view-quick-add,
+.mod-right-split .tasks-view-group-bar,
+.mod-left-split .tasks-view-group-bar,
+.mod-right-split .tasks-view-stats,
+.mod-left-split .tasks-view-stats {
+  padding-left: var(--tf-s-2);
+  padding-right: var(--tf-s-2);
+}
+
+.mod-right-split .tasks-view-group-btn.tasks-view-group-btn,
+.mod-left-split .tasks-view-group-btn.tasks-view-group-btn {
+  padding: 0 var(--tf-s-1);
+  font-size: var(--tf-fs-caption);
+}
+
+/* ═══ 21. Ribbon 品牌图标 ══════════════════════════════════════════════════
+   插件标识是自绘的「渐变圆角方块 + 两道白波」，注入在左侧 Ribbon 的按钮里。
+   SVG 自带 18px 的 width/height 属性，但 Obsidian 的主题（以及移动端）会按自己
+   的图标尺寸布局，这里显式钉住，避免某些主题下被拉成一大块或缩成一点。
+   （关于页里的同一枚图标由 .tf-about-mark svg 覆盖成 40px。） */
+.tf-brand-mark {
+  width: 18px;
+  height: 18px;
+}
+.is-mobile .tf-brand-mark {
+  width: 24px;
+  height: 24px;
+}
