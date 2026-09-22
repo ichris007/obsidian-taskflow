@@ -22,7 +22,7 @@
          muted>
     您的浏览器不支持视频播放
   </video>
-  <p><em>AI 自动生成 PPT 并添加流畅转场动画</em></p>
+  <p><em>TaskFlow功能演示</em></p>
 </div>
 
 ---
