@@ -1,13 +1,14 @@
 # TaskFlow
+
 [中文](./README.md) | [English](./README_EN.md)
 
 > **You don't need more tasks. You need the next step.**
 
-**TaskFlow** is an **action workbench** for [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks).
+**TaskFlow** is a lightweight **Action Workspace** built on top of [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks).
 
-It doesn't change any of your existing task syntax or query logic. Instead, it builds a dynamic **Action Space** on top of your task lists.
+It doesn't change the way you write or query tasks. Instead, it adds a dynamic **Action Space** on top of your existing task lists.
 
-It reorganizes your tasks and reduces the cost of choosing across three dimensions — **Time**, **GTD**, and **Context** — so that action happens faster.
+TaskFlow reorganizes your tasks across three dimensions — **Time**, **GTD**, and **Context** — to reduce decision-making friction and help you take action faster.
 
 ### Features and Demonstration
 
@@ -21,250 +22,262 @@ It reorganizes your tasks and reduces the cost of choosing across three dimensio
   </video>
   <p><em>AI 自动生成 PPT 并添加流畅转场动画</em></p>
 </div>
----
-
-## 01 | Why We Built This
-
-We already have plenty of tools to help us **record tasks**.
-
-But the more completely we record them, the easier action doesn't necessarily become.
-
-As tasks pile up, what really troubles us is often not:
-
-> **"Do I have anything to do?"**
-
-but rather:
-
-> **"What exactly should I do right now?"**
-
-Open your task list, and dozens or even hundreds of tasks appear at once. You have to re-evaluate:
-
-- Which one matters more?
-- Which one should come first?
-- What should I do today?
-- What suits this time of day?
-- What can I do in my current context?
-
-**The act of choosing before acting becomes a burden in itself.**
-
-That's where TaskFlow begins.
 
 ---
 
-## 02 | What It Solves
+## 01｜Why TaskFlow
 
-### TaskFlow doesn't solve "too many tasks" — it solves "too hard to choose."
+When it comes to task management in Obsidian, there are two powerful options worth mentioning: **Tasks** and **TaskNotes**. Both are excellent plugins, but they take very different approaches.
 
-Traditional task management mainly solves:
+> **Note:** Tasks and TaskNotes are both excellent plugins. The comparison below is based entirely on my personal workflow and preferences.
 
-> **Writing things down so you don't forget.**
+### Tasks
 
-But when it comes to actually acting, we still need to solve another problem:
+- Tasks is already a powerful task management system.
+    
+    - It provides mature task syntax, powerful queries, and reliable rendering with excellent performance. There is no reason to reinvent the wheel.
+        
+    - However, Tasks is not designed as a **rich visual frontend**. Its task views and aggregation interfaces are functional, but relatively limited and not highly configurable.
+        
 
-> **Finding the one thing worth doing right now among so many.**
+### TaskNotes
 
-This is a kind of **action decision cost**. The more tasks you have, the more complex your contexts, and the more frequently your situation changes, the higher this cost becomes.
+- TaskNotes offers a powerful frontend experience.
+    
+    - But it comes with a fundamental assumption: **each task is represented by its own dedicated note**. This works extremely well when individual tasks need rich context, notes, properties, and supporting information.
+        
+    - But for a simple one-line task, creating an entire note can feel unnecessarily heavy.
+        
 
-TaskFlow aims to reduce exactly this step:
+I prefer to **keep tasks as simple list items directly inside my notes**.
 
-> **Less searching, less comparing, less hesitating.**
+What I wanted was a powerful and flexible frontend without making the underlying task model heavier.
 
-To move you from:
+That is the reason I built **TaskFlow**:
+
+> **Use the powerful task engine of Tasks, and build a simpler, more flexible frontend designed for action.**
+
+### Tasks × TaskNotes × TaskFlow
+
+|                               | **Tasks**                            | **TaskNotes**                                            | **TaskFlow**                                              |
+| ----------------------------- | ------------------------------------ | -------------------------------------------------------- | --------------------------------------------------------- |
+| **Core role**                 | Powerful task engine                 | Task + notes workspace                                   | **Action-oriented task workspace**                        |
+| **Key strength**              | Task syntax, queries, performance    | Powerful task frontend and note integration              | **Lightweight tasks + powerful frontend**                 |
+| **Task granularity**          | From one-line tasks to complex tasks | Best suited to tasks that deserve their own notes        | **From one-line tasks to complex tasks**                  |
+| **Task syntax**               | **Native**                           | Its own system / integrations                            | **Uses Tasks directly**                                   |
+| **Query capabilities**        | **Powerful**                         | Powerful                                                 | **Built on Tasks' query capabilities**                    |
+| **Performance foundation**    | **Mature and reliable**              | More feature-rich                                        | **Built on top of Tasks**                                 |
+| **Task presentation**         | Relatively basic                     | **Powerful and rich**                                    | **Redesigned for simplicity and efficiency**              |
+| **Task aggregation**          | Basic                                | **Powerful**                                             | **Enhanced aggregation and contextual views**             |
+| **View philosophy**           | Task querying                        | Task + note management                                   | **Action selection**                                      |
+| **Primary use**               | Manage tasks                         | Manage tasks and their content                           | **Find what to do next**                                  |
+| **Learning / migration cost** | Existing workflow                    | Requires adapting to a task-as-note model                | **Minimal change to your existing workflow**              |
+| **Best for**                  | People who prefer a pure task system | People who want deep integration between tasks and notes | **People who like task lists but want a better frontend** |
+
+---
+
+## 02｜What Problem Does TaskFlow Solve?
+
+### TaskFlow isn't trying to solve "too many tasks." It's trying to solve "too many choices."
+
+**The decision-making that happens before taking action can become a burden in itself.**
+
+Traditional task management primarily solves one problem:
+
+> **Capture things so you don't forget them.**
+
+But when it is time to actually act, there is another problem to solve:
+
+> **Out of all these tasks, which one is actually worth doing right now?**
+
+This creates **action decision cost**.
+
+The more tasks you have, the more complex your context becomes, and the more frequently that context changes, the higher this cost becomes.
+
+TaskFlow is designed to reduce that friction.
+
+Instead of getting stuck at:
 
 > **"What should I do?"**
 
-more quickly into:
+you can move more quickly to:
 
-> **"Then let's do this."**
-
----
-
-## 03 | What It Is
-
-### TaskFlow is a workbench that moves from "tasks" toward "action."
-
-It's not about building a new task system. What TaskFlow does is:
-
-> **Let you look at these tasks from a different angle.**
-
-Traditional task management focuses on:
-
-> **What tasks do I have?**
-
-TaskFlow focuses on:
-
-> **Given my current situation, what can I do?**
-
-So it's not merely a **Task Space** — it tries to build an **Action Space**.
-
-From **managing tasks** toward **choosing action**.
-
-| Dimension | Traditional Task Management (Task Space) | TaskFlow (Action Space) |
-| --- | --- | --- |
-| **Core Goal** | **Manage things** (afraid to forget) | **Drive action** (don't know what to start) |
-| **Focus** | See all tasks (Task) | Focus on current action (Action) |
-| **Brain's Role** | **Thinking engine** (What do I have to do?) | **Execution engine** (What do I do now?) |
-| **Process** | Find task → Judge → Choose | Context → Filter → Act |
-| **Outcome** | Cognitive overload, accumulating anxiety | **Eliminate friction, start immediately** |
+> **"I'll do this."**
 
 ---
 
-## 04 | How It Solves It
+## 03｜What Is TaskFlow?
 
-TaskFlow doesn't try to decide the most important thing in your life for you. What it does is use the information already present in your tasks to help you **narrow down your choices**, putting tasks back into different action contexts:
+### TaskFlow is a workspace that moves you from **tasks to action**.
 
-- **GTD → What's the next step?**
-  Helps you find the next actionable step from a chain of tasks.
+It doesn't ask you to build a new task management system.
 
+Instead, TaskFlow gives you:
+
+> **A different way to look at the tasks you already have.**
+
+Moving from **managing tasks** to **choosing actions**.
+
+|                        | **Traditional Task Management (Task Space)**  | **TaskFlow (Action Space)**                    |
+| ---------------------- | --------------------------------------------- | ---------------------------------------------- |
+| **Core goal**          | **Manage things** — "so I don't forget"       | **Drive action** — "so I know what to do next" |
+| **Focus**              | See all tasks                                 | **Focus on the current action**                |
+| **Role of your brain** | **Thinking engine** — "What do I need to do?" | **Execution engine** — "What do I do now?"     |
+| **Process**            | Find → Evaluate → Choose                      | **Context → Filter → Act**                     |
+| **Outcome**            | Cognitive overload and accumulated stress     | **Remove friction and start immediately**      |
+
+---
+
+## 04｜How Does It Work?
+
+TaskFlow uses information that already exists in your tasks to **narrow down your choices**, placing tasks into different action contexts:
+
+- **GTD → What should I do next?**
+    
+    Helps you find the next actionable step from your task list.
+    
 - **Time → What should I do today?**
-  Helps you find what truly needs to be faced today from a time perspective.
+    
+    Helps you identify what actually needs your attention today.
+    
+- **Context → What can I do in this situation?**
+    
+    Helps you find tasks that fit your current environment, tools, or working context.
+    
 
-- **Tag → What should I do in this context?**
-  Helps you find what fits right now based on your current work environment, tools, or situation.
+As a result:
 
-So:
+> **A task is no longer just an item waiting to be completed. It becomes an action that can be rediscovered based on your current context.**
 
-> **A task is no longer just a list item waiting to be completed, but an action that can be rediscovered based on context.**
+The process changes from:
 
-The whole process shifts from:
-
-**Task list → Browse → Judge → Compare → Choose**
+**Task List → Browse → Evaluate → Compare → Choose**
 
 to:
 
-**Current context → Narrow down → Find action → Begin**
+**Current Context → Narrow the Choices → Find an Action → Start**
 
-That is:
+In other words:
 
 > **Context → Choice → Action**
 
 ---
 
-## 05 | What You Get
+## 05｜What Do You Get?
 
-What you end up with is not a more complex task system, but a lighter entry point to action.
+TaskFlow ultimately aims to create one simple change:
 
-You no longer need to face dozens of tasks each time and rethink:
+> **It doesn't help you manage more tasks. It helps you start the next one faster.**
 
-> "What should I do now?"
+With TaskFlow, you don't just get a better-looking task panel. You get a different way of working with your tasks:
 
-Instead, you get a clear answer faster:
-
-> **"Right now, I can do this."**
-
-So:
-
-**Fewer choices** → **Lower decision cost** → **Less action friction** → **Faster start** → **Easier to enter a state of sustained action**
-
-The change TaskFlow ultimately wants to bring can be summed up in one sentence:
-
-> **It's not about helping you manage more tasks, but helping you start the next thing faster.**
-
-When you use TaskFlow, what you gain is not just a good-looking panel, but a qualitative shift in your entire workflow:
-
-- **Zero decision paralysis, instant start**: The moment you open Obsidian, you no longer stare blankly at dozens of to-dos — you lock onto the most worthwhile thing to do right now at a glance.
-- **Zero migration and learning cost**: Fully compatible with existing Tasks syntax and data. No change to your recording habits. Install and go.
-- **Willpower relief, focused execution**: Minimize the drain of "picking tasks" and pour your valuable attention entirely into real "action."
-- **Naturally enter Flow**: Use structured TaskFlow to eliminate action resistance, let tasks flow smoothly, and let your brain glide easily into focused flow.
+- **No decision paralysis — just start:** Open Obsidian and stop staring at dozens of pending tasks. Quickly identify what is most relevant right now and get started.
+    
+- **Zero migration or learning cost:** Fully compatible with your existing Tasks syntax and data. Keep your current workflow and start using TaskFlow immediately.
+    
+- **Less willpower, more focus:** Minimize the mental effort spent choosing what to work on, and put your attention where it matters — into actually doing the work.
+    
+- **A smoother path into Flow:** By removing friction from the beginning of an action, TaskFlow helps your tasks move naturally and makes it easier for your mind to settle into a focused state.
+    
 
 ---
 
-## 06 | Core Narrative
+## 06｜Installation
 
-> **More and more tasks → Harder and harder to choose → Higher and higher cost of action → TaskFlow makes "choosing what" simple → People get into action faster.**
-
-> There can be hundreds of tasks, but the "next step" right now only needs one.
->
-> **TaskFlow: From managing tasks to choosing action.**
-
----
-
-## 07 | Installation Guide
-
-> **TaskFlow is not yet available in the Obsidian Community Plugin store.** You'll need to install it manually using one of the two methods below.
+> **TaskFlow is not yet available in the Obsidian Community Plugins directory.** You can install it manually using one of the following methods.
 
 ---
 
 ### Method 1: Install via BRAT (Recommended)
 
-[BRAT](https://github.com/TfTHacker/obsidian42-brat) (Beta Reviewers Auto-update Tool) is a common tool in the Obsidian community for installing and auto-updating plugins that aren't in the store yet. Once installed via BRAT, the plugin can **automatically follow updates from the GitHub repository** — no manual downloads each time.
+[BRAT](https://github.com/TfTHacker/obsidian42-brat) (**Beta Reviewers Auto-update Tool**) is a popular Obsidian community plugin for installing and automatically updating plugins that are not yet available in the Community Plugins directory.
+
+Once installed through BRAT, TaskFlow can **automatically follow updates from its GitHub repository**, so you don't need to download new releases manually.
 
 ### Steps
 
-1. **Install the BRAT plugin**
-    - Open Obsidian → Settings → Community Plugins → Browse
-    - Search for `BRAT`, find **Obsidian42 - BRAT**, click Install and Enable
-
-2. **Add TaskFlow via BRAT**
-    - Open the BRAT plugin
-    - Click **Add Beta Plugin**
-    - Paste the repository URL into the input field:
+1. **Install BRAT**
+    
+    - Open Obsidian → Settings → Community plugins → Browse
+    - Search for `BRAT`, find **Obsidian42 - BRAT**, then install and enable it.
+        
+2. **Add TaskFlow through BRAT**
+    
+    - Open the BRAT plugin.
+    - Click **Add Beta Plugin**.
+    - Paste the repository URL:
         `https://github.com/ichris007/obsidian-taskflow`
-    - Click **Add Plugin**, and BRAT will automatically download and install the latest version
+    - Click **Add Plugin**. BRAT will automatically download and install the latest version.
+        
+3. **Enable TaskFlow**
+    
+    - Go to Settings → Community plugins → Installed plugins.
+    - Find **TaskFlow** and enable it.
 
-3. **Enable the plugin**
-    - Go back to Settings → Community Plugins → Installed Plugins
-    - Find **TaskFlow** and toggle it on
-
-> 💡 From then on, whenever a new version is released, BRAT will automatically notify you or update it for you — no manual work needed.
+> 💡 Once installed, BRAT can notify you about new releases and help keep TaskFlow up to date without requiring manual downloads.
 
 ---
 
 ### Method 2: Manual Installation
 
-If you prefer not to use BRAT, you can also download the files directly from GitHub and place them in your plugin directory.
+If you prefer not to use BRAT, you can download the plugin files directly from GitHub and install them manually.
 
 ### Steps
 
 1. **Download the plugin files**
-    - Open the repository's Releases page:
-        [https://github.com/ichris007/obsidian-taskflow/releases](https://github.com/ichris007/obsidian-taskflow/releases)
+    
+    - Open the [Releases](https://github.com/ichris007/obsidian-taskflow/releases) page.
     - Download the following three files from the latest release:
+        
         - `main.js`
         - `manifest.json`
         - `styles.css`
-
-    > If there are no releases yet, you can also download these three files directly from the repository root (via Code → Download ZIP, or open each file and click Raw to save).
-
+            
+    > If there is no release available yet, you can also download these three files directly from the repository root using **Code → Download ZIP**, or open each file individually and save it via **Raw**.
+    
 2. **Find your Obsidian plugin directory**
-    - Open your Obsidian Vault folder
-    - Navigate to `.obsidian/plugins/`
-        (If you can't see the `.obsidian` folder, you'll need to enable "Show hidden files" in your system settings)
-
-3. **Create the plugin folder and place the files**
-    - Create a new folder inside `plugins` named: `taskflow`
-    - Place the downloaded `main.js`, `manifest.json`, and `styles.css` into that folder
-    - The final structure should be:
-        ```
-        .obsidian/plugins/taskflow/
-        ├── main.js
-        ├── manifest.json
-        └── styles.css
-        ```
-
-4. **Enable the plugin**
-    - Restart Obsidian (or press `Ctrl/Cmd + R` to reload)
-    - Open Settings → Community Plugins → Installed Plugins
-    - Find **TaskFlow** and toggle it on
+    
+    - Open your Obsidian vault folder.
+    - Go to `.obsidian/plugins/`.
+    - If you cannot see the `.obsidian` folder, enable hidden files in your operating system.
+        
+3. **Create the plugin folder and add the files**
+    
+    - Create a new folder named `taskflow` inside `plugins`.
+    - Put `main.js`, `manifest.json`, and `styles.css` into this folder.
+    
+    The final structure should look like:
+    
+    `.obsidian/plugins/taskflow/`  
+    ├── `main.js`  
+    ├── `manifest.json`  
+    └── `styles.css`
+    
+4. **Enable TaskFlow**
+    
+    - Restart Obsidian, or press `Ctrl/Cmd + R` to reload it.
+    - Go to Settings → Community plugins → Installed plugins.
+    - Find **TaskFlow** and enable it.
 
 ---
 
 ## About the Author
 
-**猎人科叔 (Hunter Keshu)**
+### **猎人科叔** **(Uncle Ke)**
 
-- Tech industry talent expert, 15 years as a headhunter, Internet / AI / Robotics, interviewed over 10,000 people.
-- Productivity systems expert, 16+ years of focus, building efficient work and growth systems.
-- Same name across all social media: **猎人科叔**.
+- Technology talent specialist and veteran headhunter with 15 years of experience, focused on Internet, AI, and robotics talent. Conducted 10,000+ interviews.
+- Productivity systems practitioner for 16+ years, focused on building efficient systems for work, learning, and personal growth.
+- Creator under the name **"猎人科叔"** across social platforms.
 
-For more of Keshu's Obsidian productivity and knowledge management practices (sample vaults, plugins, scripts, experience, etc.), see <https://lifein.vip>.
+For more of Chris's work on Obsidian productivity and knowledge management — including example vaults, plugins, scripts, and practical workflows — visit [Lifein](https://lifein.vip/).
 
 ---
 
 ## 📄 License
 
-Please refer to the LICENSE file in the repository.
+See the `LICENSE` file in the repository.
 
 ---
 
-> **TaskFlow — From managing tasks to choosing action.**
+> **TaskFlow — From Task Management to Action.**
+
