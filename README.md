@@ -11,7 +11,18 @@
 
 它重新组织你的任务，通过**时间**、**GTD** 和**场景**三个维度降低选择成本，让行动更快发生。
 
-![](./screenshot/split_full_cn.png)
+### 插件功能演示
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/4787af2c-767d-4d2e-83e2-f6df92633920"
+         width="800"
+         controls
+         loop
+         muted>
+    您的浏览器不支持视频播放
+  </video>
+  <p><em>AI 自动生成 PPT 并添加流畅转场动画</em></p>
+</div>
 
 ---
 ## 01｜为什么做
@@ -171,9 +182,6 @@ TaskFlow 最终想带来的改变，可以浓缩成一句话：
 ---
 
 ## 07｜安装指南
-
-### 插件展示
-![](./screenshot/taskflow_video.mp4)
 
 > **TaskFlow 目前尚未上架 Obsidian 社区插件中心**，你需要通过以下两种方式之一手动安装。
 
