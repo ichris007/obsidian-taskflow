@@ -1,4 +1,5 @@
 # TaskFlow
+[中文](./README.md) | [English](./README_EN.md)
 
 > **You don't need more tasks. You need the next step.**
 
