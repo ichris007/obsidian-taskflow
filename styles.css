@@ -1255,6 +1255,12 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 .taskflow-setting-tab {
+  /* 防御性声明：扛住宿主设置容器可能是 block / 行向 flex / 列向 flex 三种布局。
+     缺这些时，在 flex 上下文里根会被压成内容宽（~48px），卡片随之塌缩、中文逐字竖排。 */
+  width: 100%;
+  flex: 1 1 auto;
+  align-self: stretch;
+  min-width: 0;
   max-width: var(--tf-content-max-width);
   margin: 0 auto;
   padding: 0 0 var(--tf-s-6);
