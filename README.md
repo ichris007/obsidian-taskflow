@@ -1,8 +1,8 @@
-# TaskFlow
+# TaskFlow — Task Management & Action Workspace for Obsidian
 
-<p align="center">
-  <img src="./screenshot/split_full_en.png" width="600" />
-</p>
+<table  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td valign="top" width="60%">
 
 
 [English](./README.md) | [中文](./README_ZH.md)
@@ -14,6 +14,17 @@
 It doesn't change the way you write or query tasks. Instead, it adds a dynamic **Action Space** on top of your existing task lists.
 
 TaskFlow reorganizes your tasks across three dimensions — **Time**, **GTD**, and **Context** — to reduce decision-making friction and help you take action faster.
+
+</td>
+<td width="40%">
+
+<img src="./screenshot/split_full_en.png" width="100%" />
+
+</td>
+</tr>
+</table>
+
+
 
 ### Features and Demonstration
 
