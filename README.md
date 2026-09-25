@@ -7,7 +7,11 @@
 
 [English](./README.md) | [中文](./README_ZH.md)
 
+<br>
+
 > **You don't need more tasks. You need the next step.**
+
+<br>
 
 **TaskFlow** is a lightweight **Action Workspace** built on top of [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks).
 
