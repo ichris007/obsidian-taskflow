@@ -1,21 +1,35 @@
-# TaskFlow
+# TaskFlow —— Obsidian 任务管理与行动工作台
 
-<p align="center">
-  <img src="./screenshot/split_full_cn.png" width="600" />
-</p>
-
+<table  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td valign="top" width="60%">
 
 [English](./README.md) | [中文](./README_ZH.md)
+
+<br>
 
 > **你不缺任务。你缺的是下一步。**
 >
 > *You don't need more tasks. You need the next step.*
+
+<br>
 
 **TaskFlow** 是一个建立在  [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks)  之上的轻量**行动工作台**。
 
 它不改变你任何既有的任务记录语法与查询逻辑，而是在任务列表之上，构建了一层动态的 **行动空间（Action Space）**。
 
 它重新组织你的任务，通过**时间**、**GTD** 和**场景**三个维度降低选择成本，让行动更快发生。
+
+</td>
+<td width="40%">
+
+<img src="./screenshot/split_full_cn.png" width="100%" />
+
+</td>
+</tr>
+</table>
+
+
 
 ### 插件功能演示
 
