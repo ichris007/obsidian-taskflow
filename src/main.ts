@@ -1,6 +1,5 @@
-import { Notice, Plugin, WorkspaceLeaf } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import {
-	DEFAULT_SETTINGS,
 	migrateSettings,
 	TaskViewsSettingTab,
 } from './settings';
@@ -24,8 +23,8 @@ export default class TaskFlowPlugin extends Plugin {
 		);
 
 		this.addCommand({
-			id: 'open-taskflow',
-			name: 'Open TaskFlow',
+			id: 'open-view',
+			name: 'Open workbench',
 			callback: () => this.activateView(),
 		});
 
@@ -36,6 +35,8 @@ export default class TaskFlowPlugin extends Plugin {
 		// 换成自绘品牌标识（蓝紫渐变圆角方块 + 两道白波），与设置面板「关于」页同一枚；
 		// 万一注入失败就保留上面的 layout-dashboard 兜底，不至于没有图标可点。
 		try {
+			// 受信任的品牌 SVG 常量（仓库内写死，非用户输入），注入到 ribbon 图标。
+			// eslint-disable-next-line @microsoft/sdl/no-inner-html, no-unsanitized/property
 			ribbonEl.innerHTML = TASKFLOW_ICON_SVG;
 		} catch {
 			/* ignore */
@@ -44,16 +45,16 @@ export default class TaskFlowPlugin extends Plugin {
 		this.addSettingTab(new TaskViewsSettingTab(this.app, this));
 
 		this.app.workspace.onLayoutReady(() => {
-			this.activateView();
+			void this.activateView();
 		});
 	}
 
 	onunload() {
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE_TASKFLOW);
+		
 	}
 
 	private hasTasksPlugin(): boolean {
-		const plugins = this.app.plugins.plugins as Record<string, any>;
+		const plugins = this.app.plugins.plugins;
 		return !!plugins['obsidian-tasks-plugin'];
 	}
 
@@ -72,7 +73,7 @@ export default class TaskFlowPlugin extends Plugin {
 		const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_TASKFLOW);
 		const existingLeaf = existing[0];
 		if (existingLeaf) {
-			this.app.workspace.revealLeaf(existingLeaf);
+			void this.app.workspace.revealLeaf(existingLeaf);
 			return;
 		}
 
@@ -83,12 +84,12 @@ export default class TaskFlowPlugin extends Plugin {
 			: this.app.workspace.getLeaf('tab');
 		if (leaf) {
 			await leaf.setViewState({ type: VIEW_TYPE_TASKFLOW, active: true });
-			this.app.workspace.revealLeaf(leaf);
+			void this.app.workspace.revealLeaf(leaf);
 		}
 	}
 
 	async loadSettings() {
-		const loaded = await this.loadData();
+		const loaded = (await this.loadData()) as Partial<TaskViewsSettings> | null;
 		this.settings = migrateSettings(loaded ?? {});
 	}
 
@@ -120,7 +121,7 @@ export default class TaskFlowPlugin extends Plugin {
 		for (const leaf of leaves) {
 			const view = leaf.view as TaskFlowView;
 			view.buildShell();
-			view.refresh();
+			void view.refresh();
 		}
 	}
 

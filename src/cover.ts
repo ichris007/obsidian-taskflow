@@ -34,7 +34,7 @@ export const COVER_FILE = 'taskflow_banner';
  * 而非空串）一律收口到 _taskflow，杜绝把封面漏写进库根。
  */
 export function coverStorageDir(app: App): string {
-	const folder = ((app.vault as any).getConfig('attachmentFolderPath') as string | undefined) ?? '';
+	const folder = (app.vault.getConfig('attachmentFolderPath') as string | undefined) ?? '';
 	const isUserSpecifiedFolder =
 		folder.length > 0 &&
 		folder !== '.' &&

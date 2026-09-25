@@ -33,16 +33,16 @@ export class ScanCache {
 	 */
 	private shouldEnableDebug(): boolean {
 		// 支持的环境变量：TASKFLOW_DEBUG, DEBUG
-		const env = typeof window !== 'undefined' ? (window as any).process?.env : null;
+		const env = typeof window !== 'undefined' ? window.process?.env : undefined;
 		if (env) {
 			return (
 				env.TASKFLOW_DEBUG === 'true' ||
 				env.TASKFLOW_DEBUG === '1' ||
-				env.DEBUG?.includes?.('taskflow') === true
+				env.DEBUG?.includes('taskflow') === true
 			);
 		}
 		// 开发环境默认启用调试
-		return (import.meta as any).env?.DEV === true;
+		return import.meta.env?.DEV === true;
 	}
 
 	/**
@@ -92,8 +92,6 @@ export class ScanCache {
 
 		if (this.debug) {
 			this.log(`[ScanCache] Loaded ${allTasks.length} tasks (cache: ${cacheHits} hits, ${cacheMisses} misses, ${stats.cachedFiles} stored) in ${elapsed.toFixed(1)}ms`);
-		} else {
-			console.log(`[ScanCache] Loaded ${allTasks.length} tasks in ${elapsed.toFixed(1)}ms`);
 		}
 
 		return allTasks;
@@ -215,7 +213,7 @@ export class ScanCache {
 	 * 调试日志输出
 	 */
 	private log(message: string): void {
-		console.log(message);
+		console.warn(message);
 	}
 
 	/**
@@ -243,7 +241,6 @@ export class ScanCache {
 	 */
 	clear(): void {
 		this.cache.clear();
-		console.log('[ScanCache] Cache cleared');
 	}
 
 	/**

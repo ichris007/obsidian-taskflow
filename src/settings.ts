@@ -18,10 +18,10 @@ import {
 	normalizeQueryLines,
 } from './types';
 import { COVER_FILE, persistCoverImage, removeCoverImage, resolveCoverFile } from './cover';
-import { TaskFlowConfigureModal } from './modals/board-config-modal';
 import { TabEditModal } from './modals/board-config-modal';
 import { GroupEditModal } from './modals/board-config-modal';
 import { TFEditModal } from './modals/tf-edit-modal';
+import { ConfirmModal } from './modals/confirm-modal';
 import { isBuiltinSlogan, localizedTabLabel, t } from './i18n';
 import type { LangSetting } from './i18n';
 import { TASKFLOW_ICON_SVG } from './brand';
@@ -61,7 +61,7 @@ function getSettingsSections(): ReadonlyArray<{ id: SettingsSectionId; label: st
 type TFButtonVariant = 'secondary' | 'ghost' | 'danger';
 
 /** 「关于」页用到的外链 */
-export const REPO_URL = 'https://github.com/ichris007/obsidian-taskflow';
+export const REPO_URL = 'https://github.com/ichris007/taskflow';
 export const AUTHOR_SITE_URL = 'https://lifein.vip';
 
 /** 单行设置：左侧「标题 + 说明」，右侧控件 */
@@ -99,22 +99,6 @@ function renderTFRowButton(
 	return btn;
 }
 
-/** 圆形图标按钮（选择文件 / 文件夹） */
-function renderTFIconButton(
-	control: HTMLElement,
-	icon: string,
-	label: string,
-	onClick: () => void,
-): HTMLButtonElement {
-	const btn = control.createEl('button', {
-		cls: 'tf-btn tf-btn-secondary tf-btn-icon',
-		attr: { type: 'button', 'aria-label': label, title: label },
-	});
-	setIcon(btn, icon);
-	btn.addEventListener('click', onClick);
-	return btn;
-}
-
 /** iOS 风格开关 */
 interface TFSwitchConfig {
 	checked: boolean;
@@ -133,7 +117,7 @@ function renderTFSwitch(parent: HTMLElement, config: TFSwitchConfig): HTMLElemen
 	const input = wrap.createEl('input', {
 		cls: 'tf-switch-input',
 		attr: { type: 'checkbox', 'aria-label': config.label },
-	}) as HTMLInputElement;
+	});
 	input.checked = config.checked;
 	const track = wrap.createEl('span', { cls: 'tf-switch-track' });
 	track.createEl('span', { cls: 'tf-switch-thumb' });
@@ -166,7 +150,7 @@ function renderTFFileSuggestRow(control: HTMLElement, config: TFFileSuggestConfi
 	const input = wrap.createEl('input', {
 		cls: 'tf-field-input',
 		attr: { type: 'text', placeholder: config.placeholder ?? '' },
-	}) as HTMLInputElement;
+	});
 	input.value = config.value;
 
 	const list = wrap.createEl('div', { cls: 'tf-suggest-list' });
@@ -176,7 +160,7 @@ function renderTFFileSuggestRow(control: HTMLElement, config: TFFileSuggestConfi
 	let activeIndex = -1;
 
 	const close = (): void => {
-		list.style.display = 'none';
+		list.setCssProps({ display: 'none' });
 		items = [];
 		itemEls = [];
 		activeIndex = -1;
@@ -201,7 +185,7 @@ function renderTFFileSuggestRow(control: HTMLElement, config: TFFileSuggestConfi
 		items = (q ? pool.filter((f) => f.path.toLowerCase().includes(q)) : pool).slice(0, SUGGEST_MAX);
 		itemEls = [];
 		list.empty();
-		list.style.display = 'block';
+		list.setCssProps({ display: 'block' });
 
 		if (items.length === 0) {
 			list.createEl('div', { cls: 'tf-suggest-empty', text: t('suggest.noMatch') });
@@ -277,20 +261,27 @@ function showTFToast(message: string, type: 'success' | 'error' | 'info' = 'info
 
 	const toast = document.createElement('div');
 	toast.className = `tf-toast tf-toast-${type}`;
-	toast.innerHTML = `
-		<span class="tf-toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
-		<span class="tf-toast-content">${message}</span>
-		<button class="tf-toast-close" aria-label="${t('common.close')}">✕</button>
-	`;
-	toast.querySelector('.tf-toast-close')?.addEventListener('click', () => toast.remove());
+
+	const icon = toast.createEl('span', { cls: 'tf-toast-icon' });
+	icon.textContent = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+	// message 来自运行期（可能是错误文案），用 textContent 注入，绝不走 innerHTML
+	toast.createEl('span', { cls: 'tf-toast-content', text: message });
+	const closeBtn = toast.createEl('button', {
+		cls: 'tf-toast-close',
+		attr: { type: 'button', 'aria-label': t('common.close') },
+	});
+	closeBtn.textContent = '✕';
+	closeBtn.addEventListener('click', () => toast.remove());
 	document.body.appendChild(toast);
 
 	// 自动消失
-	setTimeout(() => {
-		toast.style.opacity = '0';
-		toast.style.transform = 'translateY(8px) scale(0.95)';
-		toast.style.transition = 'all 200ms ease';
-		setTimeout(() => toast.remove(), 200);
+	window.setTimeout(() => {
+		toast.setCssProps({
+			opacity: '0',
+			transform: 'translateY(8px) scale(0.95)',
+			transition: 'all 200ms ease',
+		});
+		window.setTimeout(() => toast.remove(), 200);
 	}, 3000);
 }
 
@@ -597,12 +588,12 @@ export function migrateSettings(loaded: Partial<TaskViewsSettings>): TaskViewsSe
 	}
 
 	// Old format: flat structure
-	const anyLoaded = loaded as any;
+	const anyLoaded = loaded as unknown;
 	let tabs = anyLoaded.tabs as TabConfig[] | undefined;
 	let boards = anyLoaded.boards as Board[] | undefined;
 	let globalTabs = anyLoaded.globalTabs as TabConfig[] | undefined;
-	const inboxFilePath = anyLoaded.inboxFilePath;
-	const excludedFolders = anyLoaded.excludedFolders;
+	const inboxFilePath = anyLoaded.inboxFilePath as string | undefined;
+	const excludedFolders = anyLoaded.excludedFolders as string | undefined;
 
 	// If old format (tabs at root), move to globalTabs
 	if (tabs && !globalTabs) {
@@ -626,7 +617,7 @@ export function migrateSettings(loaded: Partial<TaskViewsSettings>): TaskViewsSe
 			inboxFilePath: inboxFilePath ?? DEFAULT_SETTINGS.data.inboxFilePath,
 			excludedFolders: excludedFolders ?? DEFAULT_SETTINGS.data.excludedFolders,
 			globalTabs: globalTabs ?? DEFAULT_SETTINGS.data.globalTabs,
-			boards: boards.sort((a, b) => (a as any).order - (b as any).order),
+			boards: boards.sort((a, b) => a.order - b.order),
 				groups: TAB_GROUPS,
 			...HEAD_DEFAULTS,
 			// 面板模块：老格式（扁平）一定没有，用默认常量补齐
@@ -822,7 +813,7 @@ export class SettingsManager {
 					const picker = control.createEl('input', {
 						cls: 'tf-file-input-hidden',
 						attr: { type: 'file', accept: 'image/*', 'aria-label': t('settings.cover.aria') },
-					}) as HTMLInputElement;
+					});
 					picker.addEventListener('change', () => void this.pickCover(picker));
 
 					renderTFRowButton(control, file ? t('settings.cover.change') : t('settings.cover.choose'), 'secondary', () => picker.click());
@@ -865,7 +856,7 @@ export class SettingsManager {
 							placeholder: DEFAULT_WORKBENCH_TITLE,
 							'aria-label': t('settings.head.workbench'),
 						},
-					}) as HTMLInputElement;
+					});
 					input.value = data.workbenchTitle || DEFAULT_WORKBENCH_TITLE;
 					input.addEventListener('change', () => {
 						// 清空等于回到默认名，否则头部大字会整块消失
@@ -889,7 +880,7 @@ export class SettingsManager {
 							placeholder: defaultSlogan(),
 							'aria-label': 'Slogan',
 						},
-					}) as HTMLInputElement;
+					});
 					// 存的还是内置默认值时，框里留空、把默认文案放进 placeholder：
 					// 一来用户一眼看到的是「当前语言下的默认值」，二来不会把中文默认值
 					// 在英文界面里当成自定义文案显示出来。清空即「不要 slogan」。
@@ -951,7 +942,7 @@ export class SettingsManager {
 					const ta = control.createEl('textarea', {
 						cls: 'tf-field-textarea tf-important-query',
 						attr: { rows: '4', 'aria-label': t('settings.panel.query'), placeholder: DEFAULT_IMPORTANT_QUERY },
-					}) as HTMLTextAreaElement;
+					});
 					ta.value = data.importantReminderQuery ?? DEFAULT_IMPORTANT_QUERY;
 					ta.addEventListener('change', () => {
 						data.importantReminderQuery = ta.value;
@@ -1071,9 +1062,11 @@ export class SettingsManager {
 
 			const hero = card.createEl('div', { cls: 'tf-about-hero' });
 			// 与 Ribbon 用同一个品牌图标，界面前后呼应
-			try {
-				hero.createEl('div', { cls: 'tf-about-mark' }).innerHTML = TASKFLOW_ICON_SVG;
-			} catch {
+		try {
+			// 受信任的品牌 SVG 常量（仓库内写死，非用户输入），注入到关于页图标。
+			// eslint-disable-next-line @microsoft/sdl/no-inner-html, no-unsanitized/property
+			hero.createEl('div', { cls: 'tf-about-mark' }).innerHTML = TASKFLOW_ICON_SVG;
+		} catch {
 				setIcon(hero.createEl('div', { cls: 'tf-about-mark' }), 'layout-dashboard');
 			}
 			const heroText = hero.createEl('div', { cls: 'tf-about-hero-text' });
@@ -1289,35 +1282,43 @@ export class SettingsManager {
 
 	/** 确认删除分组 */
 	private confirmDeleteGroup(group: { id: string; label: string }): void {
-		if (!confirm(t('settings.confirm.deleteGroup', { name: group.label }))) return;
+		new ConfirmModal(
+			this.plugin.app,
+			t('settings.confirm.deleteGroup', { name: group.label }),
+			() => {
+				const data = this.plugin.settings.data;
+				data.globalTabs = data.globalTabs.filter(
+					(tab) => getTabGroup(tab, data.groups) !== group.id,
+				);
+				const index = data.groups.findIndex((g) => g.id === group.id);
+				if (index !== -1) data.groups.splice(index, 1);
 
-		const data = this.plugin.settings.data;
-		data.globalTabs = data.globalTabs.filter(
-			(tab) => getTabGroup(tab, data.groups) !== group.id,
-		);
-		const index = data.groups.findIndex((g) => g.id === group.id);
-		if (index !== -1) data.groups.splice(index, 1);
-
-		void this.saveSettings().then(() => {
-			this.plugin.refreshAllViews();
-			this.rebuildUI();
-			showTFToast(t('toast.groupDeleted'), 'success');
-		});
+				void this.saveSettings().then(() => {
+					this.plugin.refreshAllViews();
+					this.rebuildUI();
+					showTFToast(t('toast.groupDeleted'), 'success');
+				});
+			},
+		).open();
 	}
 
 	/** 确认删除 Tab */
 	private confirmDeleteTab(tab: TabConfig): void {
-		if (!confirm(t('settings.confirm.deleteTab', { name: localizedTabLabel(tab) }))) return;
+		new ConfirmModal(
+			this.plugin.app,
+			t('settings.confirm.deleteTab', { name: localizedTabLabel(tab) }),
+			() => {
+				const index = this.plugin.settings.data.globalTabs.indexOf(tab);
+				if (index === -1) return;
+				this.plugin.settings.data.globalTabs.splice(index, 1);
 
-		const index = this.plugin.settings.data.globalTabs.indexOf(tab);
-		if (index === -1) return;
-		this.plugin.settings.data.globalTabs.splice(index, 1);
-
-		void this.saveSettings().then(() => {
-			this.plugin.refreshAllViews();
-			this.rebuildUI();
-			showTFToast(t('toast.tabDeleted'), 'success');
-		});
+				void this.saveSettings().then(() => {
+					this.plugin.refreshAllViews();
+					this.rebuildUI();
+					showTFToast(t('toast.tabDeleted'), 'success');
+				});
+			},
+		).open();
 	}
 
 	/** 就地重建设置面板：列表与配置保持一致，并停在当前分组 */
@@ -1435,7 +1436,7 @@ export class TaskViewsSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		containerEl.addClass("taskflow-setting-tab");
-		this.settingsManager.constructUI(containerEl, "TaskFlow Settings");
+		void this.settingsManager.constructUI(containerEl, "TaskFlow Settings");
 	}
 
 	hide(): void {

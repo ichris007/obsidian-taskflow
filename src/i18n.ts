@@ -9,6 +9,8 @@
  *    因此带变量的文案一律写成模板串再传 vars，不要在调用处做字符串拼接。
  */
 
+import { getLanguage } from 'obsidian';
+
 export type UiLang = 'zh' | 'en';
 /** 设置项的三档取值：跟随系统 / 强制中文 / 强制英文 */
 export type LangSetting = 'auto' | 'zh' | 'en';
@@ -31,6 +33,7 @@ const ZH: Record<string, string> = {
 	'banner.line': '你不缺任务，你缺的是下一步。',
 	'common.builtinSuffix': ' · 内置',
 	'common.cancel': '取消',
+	'common.confirm': '确定',
 	'common.close': '关闭',
 	'common.delete': '删除',
 	'common.edit': '编辑',
@@ -221,6 +224,7 @@ const EN: Record<string, string> = {
 	'banner.line': 'You don\'t need more tasks. You need the next step.',
 	'common.builtinSuffix': ' · built-in',
 	'common.cancel': 'Cancel',
+	'common.confirm': 'Confirm',
 	'common.close': 'Close',
 	'common.delete': 'Delete',
 	'common.edit': 'Edit',
@@ -411,36 +415,31 @@ export function getUiLang(): UiLang {
 
 /**
  * 探测 Obsidian 界面语言。
- * 依次尝试：vault 配置里的 language → localStorage 的 language（Obsidian 自己写的）
- * → 浏览器/系统语言 → 兜底英文。全程 try/catch，测试桩里没有 window 也不会炸。
+ * 优先使用 Obsidian 官方的 getLanguage()，再回落到浏览器/系统语言，最后兜底中文。
+ * 全程 try/catch，测试桩里没有 getLanguage / window 也不会炸。
  */
-export function detectObsidianLang(app?: any): UiLang {
-	const isZh = (raw: unknown): boolean => String(raw ?? '').toLowerCase().startsWith('zh');
+export function detectObsidianLang(_app?: unknown): UiLang {
 	try {
-		const cfg = app?.vault?.getConfig?.('language');
-		if (cfg) return isZh(cfg) ? 'zh' : 'en';
+		const lang = getLanguage();
+		if (typeof lang === 'string') {
+			return lang.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+		}
 	} catch {
 		/* ignore */
 	}
 	try {
-		const ls = (globalThis as any)?.localStorage?.getItem?.('language');
-		if (ls) return isZh(ls) ? 'zh' : 'en';
+		const nav = typeof window !== 'undefined' ? window.navigator?.language : undefined;
+		if (nav) return nav.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 	} catch {
 		/* ignore */
 	}
-	try {
-		const nav = (globalThis as any)?.navigator?.language;
-		if (nav) return isZh(nav) ? 'zh' : 'en';
-	} catch {
-		/* ignore */
-	}
-	// 三条路都拿不到（例如 Node 测试桩里没有 window）时回落中文：
+	// 两条路都拿不到（例如 Node 测试桩里没有 window）时回落中文：
 	// 那是插件的原始语言，比莫名其妙变英文更安全。
 	return 'zh';
 }
 
 /** 把设置项（auto/zh/en）解析成实际使用的语言 */
-export function resolveLang(setting: LangSetting | undefined, app?: any): UiLang {
+export function resolveLang(setting: LangSetting | undefined, app?: unknown): UiLang {
 	if (setting === 'en') return 'en';
 	if (setting === 'zh') return 'zh';
 	return detectObsidianLang(app);

@@ -1,4 +1,4 @@
-import { App, Component, ItemView, MarkdownRenderer, Menu, Notice, TFile, WorkspaceLeaf, setIcon } from 'obsidian';
+import { App, Component, ItemView, MarkdownRenderer, Notice, TFile, WorkspaceLeaf, setIcon } from 'obsidian';
 import type TaskViewsPlugin from './main';
 import type { TabConfig, TabGroup, TabGroupConfig, Task } from './types';
 import {
@@ -41,9 +41,23 @@ const EMPTY_QUIET_MS = 250;
  * Tasks 的 `show tree` 指令在 7.12.0 引入，且 Tasks 侧默认是关闭的。
  * 低于这个版本注入会变成未知指令（Tasks 会在结果里报一行错误），所以必须卡版本。
  */
-const TASKS_TREE_MIN_MAJOR = 7;
-const TASKS_TREE_MIN_MINOR = 12;
 const TASKS_PLUGIN_ID = 'obsidian-tasks-plugin';
+
+/**
+ * Tasks 插件实例的最小类型（只取统计需要的 `getTasks`）。
+ * 运行时拿不到官方类型（插件未作为依赖），用结构化最小接口描述，
+ * 既能消掉 `any` 引发的 `no-unsafe-*`，又不耦合具体插件版本。
+ */
+interface TasksPluginLike {
+	getTasks: () => unknown[];
+}
+
+/** Tasks 单条任务的最小类型（统计只关心 status / dueDate / doneDate）。 */
+interface TasksTaskLike {
+	status?: { type?: string };
+	dueDate?: unknown;
+	doneDate?: unknown;
+}
 
 /**
  * 列出 Tasks 插件的**候选**实例，交给调用方按能力挑。
@@ -54,9 +68,13 @@ const TASKS_PLUGIN_ID = 'obsidian-tasks-plugin';
  * 而是都列出来：谁能提供需要的能力就用谁。
  * 这样既不会把已跑通的统计口径改坏，也能覆盖标准形态。
  */
-function getTasksPluginCandidates(app: App): any[] {
-	const plugins = (app as any).plugins;
-	return [plugins?.plugins?.[TASKS_PLUGIN_ID], plugins?.[TASKS_PLUGIN_ID]].filter(Boolean);
+function getTasksPluginCandidates(app: App): TasksPluginLike[] {
+	const plugins = app.plugins;
+	const candidates: unknown[] = [plugins.plugins[TASKS_PLUGIN_ID], plugins[TASKS_PLUGIN_ID]];
+	return candidates.filter(
+		(p): p is TasksPluginLike =>
+			typeof (p as { getTasks?: unknown })?.getTasks === 'function',
+	);
 }
 
 /**
@@ -85,10 +103,14 @@ const FALLBACK_STATUS_MAP: Record<string, StatStatus> = {
 };
 
 /** 把 due 日期统一成 YYYY-MM-DD 字符串：Tasks 的 Moment 用 .format，自带解析已是字符串。 */
-function dueToStr(due: any): string | null {
+function dueToStr(due: unknown): string | null {
 	if (!due) return null;
 	if (typeof due === 'string') return due;
-	if (typeof due.format === 'function') return due.format('YYYY-MM-DD');
+	// Tasks 用 Moment 对象，Moment.format 是函数；用结构化判断避免 any 调用
+	const momentLike = due as { format?: unknown };
+	if (typeof momentLike.format === 'function') {
+		return (momentLike.format as (fmt: string) => string)('YYYY-MM-DD');
+	}
 	return null;
 }
 
@@ -168,16 +190,16 @@ export class TaskFlowView extends ItemView {
 	private cacheManager: ScanCache;
 
 	// Group tab elements
-	private groupBtns: Record<string, HTMLElement> = {} as Record<string, HTMLElement>;
+	private groupBtns: Record<string, HTMLElement> = {};
 
 	// Tab elements
-	private tabBtns: Record<TabId, HTMLElement> = {} as Record<TabId, HTMLElement>;
-	private tabPanels: Record<TabId, HTMLElement> = {} as Record<TabId, HTMLElement>;
-	private tabBodies: Record<TabId, HTMLElement> = {} as Record<TabId, HTMLElement>;
-	private tabCounts: Record<TabId, HTMLElement> = {} as Record<TabId, HTMLElement>;
+	private tabBtns: Record<TabId, HTMLElement> = {};
+	private tabPanels: Record<TabId, HTMLElement> = {};
+	private tabBodies: Record<TabId, HTMLElement> = {};
+	private tabCounts: Record<TabId, HTMLElement> = {};
 	private tabCollapsed: Record<TabId, boolean> = {};
 	// 每个 tab 所属分组（构建时快照，切换分组时用它决定显示哪些 tab）
-	private tabGroups: Record<TabId, TabGroup> = {} as Record<TabId, TabGroup>;
+	private tabGroups: Record<TabId, TabGroup> = {};
 	// 分组下没有 tab 时的占位提示
 	private emptyGroupEl: HTMLElement | null = null;
 	/** 占位提示里的分组名标题 —— 切换一级 tab 时要跟着改文案 */
@@ -304,8 +326,8 @@ export class TaskFlowView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		this.addAction('settings', 'TaskFlow settings', () => {
-			(this.app.setting as any).open();
-			(this.app.setting as any).openTabById('taskflow');
+			this.app.setting.open();
+			this.app.setting.openTabById('taskflow');
 		});
 
 		this.buildShell();
@@ -315,8 +337,8 @@ export class TaskFlowView extends ItemView {
 
 	async onClose(): Promise<void> {
 		this.stopHeadClock();
-		if (this.statsTimer) clearTimeout(this.statsTimer);
-		if (this.contentTimer) clearTimeout(this.contentTimer);
+		if (this.statsTimer) window.clearTimeout(this.statsTimer);
+		if (this.contentTimer) window.clearTimeout(this.contentTimer);
 		this.clearZeroRetry();
 		// 必须显式卸载：Tasks 的渲染器挂着 vault 监听，只关视图不清它们会一直重跑查询
 		this.unloadAllRenderComponents();
@@ -334,13 +356,13 @@ export class TaskFlowView extends ItemView {
 		container.addClass('tasks-view-container');
 
 		// Clear cached element references to avoid stale DOM pointers
-		this.groupBtns = {} as any;
-		this.tabBtns = {} as any;
-		this.tabPanels = {} as any;
-		this.tabBodies = {} as any;
-		this.tabCounts = {} as any;
+		this.groupBtns = {};
+		this.tabBtns = {};
+		this.tabPanels = {};
+		this.tabBodies = {};
+		this.tabCounts = {};
 		this.tabCollapsed = {};
-		this.tabGroups = {} as any;
+		this.tabGroups = {};
 		this.emptyGroupEl = null;
 		this.emptyGroupTitleEl = null;
 		// 重建前先停掉上一轮的时钟：容器马上要 empty()，留着旧定时器只会
@@ -368,7 +390,7 @@ export class TaskFlowView extends ItemView {
 		this.importantMoreEl = null;
 		this.importantExpanded = false;
 		if (this.importantEmptyTimer) {
-			clearTimeout(this.importantEmptyTimer);
+			window.clearTimeout(this.importantEmptyTimer);
 			this.importantEmptyTimer = null;
 		}
 
@@ -492,7 +514,7 @@ export class TaskFlowView extends ItemView {
 			const img = cover.createEl('img', {
 				cls: 'tf-head-cover-img',
 				attr: { alt: '', draggable: 'false' },
-			}) as HTMLImageElement;
+			});
 			img.src = this.app.vault.getResourcePath(file);
 			this.applyCoverPosition(img, data.coverPosition);
 
@@ -512,7 +534,7 @@ export class TaskFlowView extends ItemView {
 		const picker = cover.createEl('input', {
 			cls: 'tf-head-cover-file',
 			attr: { type: 'file', accept: 'image/*' },
-		}) as HTMLInputElement;
+		});
 		picker.addEventListener('change', () => void this.onCoverPicked(picker));
 
 		const pick = bar.createEl('button', {
@@ -542,6 +564,8 @@ export class TaskFlowView extends ItemView {
 		cover.addClass('is-default-banner');
 		const holder = cover.createEl('div', { cls: 'tf-head-cover-default' });
 		try {
+			// 受信任的内置默认横幅 SVG（仓库内写死，非用户输入），注入到封面占位。
+			// eslint-disable-next-line @microsoft/sdl/no-inner-html, no-unsanitized/property
 			holder.innerHTML = defaultBannerSvg(t('banner.line'));
 		} catch (error) {
 			// innerHTML 不被支持时（极少数环境）不能把整个头部拖崩
@@ -825,8 +849,6 @@ export class TaskFlowView extends ItemView {
 	 * refreshStats() / refreshContent() 两条更轻的路径（见 scheduleRefresh）。
 	 */
 	private async runRefresh(): Promise<void> {
-		const start = performance.now();
-
 		let source: 'tasks' | 'own' = 'own';
 		try {
 			const result = await this.getVaultTasks();
@@ -837,9 +859,6 @@ export class TaskFlowView extends ItemView {
 			this.statTasks = this.statTasks ?? [];
 		}
 
-		const elapsed = performance.now() - start;
-		const stats = this.cacheManager.getStats();
-		console.log(`[Tasks Companion] Loaded ${this.statTasks.length} tasks (${stats.cachedFiles} cached files) in ${elapsed.toFixed(1)}ms`);
 		if (this.statTasks.length > 0) {
 			// 拿到任务了：Tasks 插件已就绪，取消并清零「0 任务」重试
 			this.clearZeroRetry();
@@ -878,10 +897,10 @@ export class TaskFlowView extends ItemView {
 	 *   后台同步/批量写入期间列表短暂落后，停手后自动追上，是可接受的取舍。
 	 */
 	private scheduleRefresh(): void {
-		if (this.statsTimer) clearTimeout(this.statsTimer);
-		this.statsTimer = setTimeout(() => void this.refreshStats(), STATS_DEBOUNCE_MS);
-		if (this.contentTimer) clearTimeout(this.contentTimer);
-		this.contentTimer = setTimeout(() => void this.refreshContent(), CONTENT_IDLE_MS);
+		if (this.statsTimer) window.clearTimeout(this.statsTimer);
+		this.statsTimer = window.setTimeout(() => void this.refreshStats(), STATS_DEBOUNCE_MS);
+		if (this.contentTimer) window.clearTimeout(this.contentTimer);
+		this.contentTimer = window.setTimeout(() => void this.refreshContent(), CONTENT_IDLE_MS);
 	}
 
 	/**
@@ -896,8 +915,8 @@ export class TaskFlowView extends ItemView {
 		if (this.zeroRetries >= ZERO_RETRY_DELAYS.length) return; // 重试已用尽，不再打扰
 		const delay = ZERO_RETRY_DELAYS[this.zeroRetries];
 		this.zeroRetries++;
-		if (this.zeroRetryTimer) clearTimeout(this.zeroRetryTimer);
-		this.zeroRetryTimer = setTimeout(() => {
+		if (this.zeroRetryTimer) window.clearTimeout(this.zeroRetryTimer);
+		this.zeroRetryTimer = window.setTimeout(() => {
 			this.zeroRetryTimer = null;
 			void this.refresh();
 		}, delay);
@@ -906,7 +925,7 @@ export class TaskFlowView extends ItemView {
 	/** 取消并清零「统计到 0 个任务」的重试（拿到任务 / 视图关闭时调用）。 */
 	private clearZeroRetry(): void {
 		if (this.zeroRetryTimer) {
-			clearTimeout(this.zeroRetryTimer);
+			window.clearTimeout(this.zeroRetryTimer);
 			this.zeroRetryTimer = null;
 		}
 		this.zeroRetries = 0;
@@ -935,8 +954,8 @@ export class TaskFlowView extends ItemView {
 	/** 仅重渲染任务列表内容（统计由 refreshStats 负责）。单飞；若正忙则稍后重试一次。 */
 	private async refreshContent(): Promise<void> {
 		if (this.refreshBusy) {
-			if (this.contentTimer) clearTimeout(this.contentTimer);
-			this.contentTimer = setTimeout(() => void this.refreshContent(), CONTENT_IDLE_MS);
+			if (this.contentTimer) window.clearTimeout(this.contentTimer);
+			this.contentTimer = window.setTimeout(() => void this.refreshContent(), CONTENT_IDLE_MS);
 			return;
 		}
 		this.refreshBusy = true;
@@ -1093,8 +1112,8 @@ export class TaskFlowView extends ItemView {
 	 * 幂等：同一 body 只挂一次。
 	 */
 	private observeBody(body: HTMLElement, tab: { id: TabId; label: string }): void {
-		if ((body as any).__tfObserved) return;
-		(body as any).__tfObserved = true;
+		if ((body as unknown).__tfObserved) return;
+		(body as unknown).__tfObserved = true;
 
 		const onMutate = () => {
 			// 计数只取决于 DOM 现状，但全表 querySelectorAll 很贵（列表越大越慢），
@@ -1106,7 +1125,7 @@ export class TaskFlowView extends ItemView {
 				// 任务项已出现：立刻撤掉空状态（不等待静默），并取消待定的空状态判定
 				const pending = this.emptyTimers.get(body);
 				if (pending) {
-					clearTimeout(pending);
+					window.clearTimeout(pending);
 					this.emptyTimers.delete(body);
 				}
 				this.removeEmptyState(body);
@@ -1120,8 +1139,8 @@ export class TaskFlowView extends ItemView {
 			if (body.parentElement?.querySelector('.tasks-view-empty')) return; // 已经显示了，无需重排
 
 			const prev = this.emptyTimers.get(body);
-			if (prev) clearTimeout(prev);
-			const timer = setTimeout(() => {
+			if (prev) window.clearTimeout(prev);
+			const timer = window.setTimeout(() => {
 				this.emptyTimers.delete(body);
 				if (body.querySelector('.task-list-item')) return; // 静默期间又出现，放弃
 				this.renderEmptyState(body, tab);
@@ -1148,21 +1167,22 @@ export class TaskFlowView extends ItemView {
 	 * 现在只有 Tasks 侧拿到**非空**结果才直接用，为空一律再走自带扫描兜底。
 	 */
 	private async getVaultTasks(): Promise<{ tasks: StatTask[]; source: 'tasks' | 'own' }> {
-		// 两种形态都试，取第一个真正提供 getTasks() 的
-		const tasksPlugin = getTasksPluginCandidates(this.app).find(
-			(p) => typeof p?.getTasks === 'function',
-		);
+		// 两种形态都列出来，取第一个真正提供 getTasks() 的（候选已按能力过滤）
+		const tasksPlugin = getTasksPluginCandidates(this.app)[0];
 		const getTasks = tasksPlugin?.getTasks;
 		let fromPlugin: StatTask[] | null = null;
 		if (typeof getTasks === 'function') {
 			try {
-				const raw = getTasks.call(tasksPlugin) as any[];
+				const raw = getTasks.call(tasksPlugin);
 				if (Array.isArray(raw)) {
-					fromPlugin = raw.map((t): StatTask => ({
-						statusType: (t?.status?.type ?? 'TODO') as StatStatus,
-						due: dueToStr(t?.dueDate),
-						doneDate: dueToStr(t?.doneDate),
-					}));
+					fromPlugin = raw.map((t): StatTask => {
+						const task = t as TasksTaskLike;
+						return {
+							statusType: (task.status?.type ?? 'TODO') as StatStatus,
+							due: dueToStr(task.dueDate),
+							doneDate: dueToStr(task.doneDate),
+						};
+					});
 				}
 			} catch (error) {
 				console.error('[TaskFlow] 调用 Tasks.getTasks() 失败，回退到自带扫描:', error);
@@ -1325,10 +1345,10 @@ export class TaskFlowView extends ItemView {
 	/** 计数去抖：DOM 变动期间只算一次全表，避免每次 mutation 都 querySelectorAll（列表越大越慢）。 */
 	private scheduleCount(tabId: TabId, body: HTMLElement): void {
 		const prev = this.countTimers.get(body);
-		if (prev) clearTimeout(prev);
+		if (prev) window.clearTimeout(prev);
 		this.countTimers.set(
 			body,
-			setTimeout(() => this.updateTabCount(tabId, body), COUNT_DEBOUNCE_MS),
+			window.setTimeout(() => this.updateTabCount(tabId, body), COUNT_DEBOUNCE_MS),
 		);
 	}
 
@@ -1425,7 +1445,7 @@ export class TaskFlowView extends ItemView {
 		const input = topRow.createEl('input', {
 			cls: 'tasks-view-quick-add-input',
 			attr: { placeholder: 'Add to inbox…', type: 'text' },
-		}) as HTMLInputElement;
+		});
 
 
 		const settingsBtn = topRow.createEl('button', {
@@ -1434,15 +1454,15 @@ export class TaskFlowView extends ItemView {
 		});
 		setIcon(settingsBtn, 'settings');
 		settingsBtn.addEventListener('click', () => {
-			(this.app.setting as any).open();
-			(this.app.setting as any).openTabById('taskflow');
+			this.app.setting.open();
+			this.app.setting.openTabById('taskflow');
 		});
 
-		input.addEventListener('keydown', async (e) => {
+		input.addEventListener('keydown', (e) => {
 			if (e.key === 'Enter') {
 				const text = input.value.trim();
 				if (text) {
-					await this.addToInbox(text);
+					void this.addToInbox(text);
 					input.value = '';
 				}
 			} else if (e.key === 'Escape') {
@@ -1502,7 +1522,7 @@ export class TaskFlowView extends ItemView {
 		// 确保容器有相对定位
 		const containerStyle = quickAddContainer.style;
 		if (containerStyle.position !== 'relative' && containerStyle.position !== 'absolute') {
-			quickAddContainer.style.position = 'relative';
+			quickAddContainer.setCssProps({ position: 'relative' });
 		}
 
 		// 创建反馈元素
@@ -1526,10 +1546,9 @@ export class TaskFlowView extends ItemView {
 		quickAddContainer.appendChild(feedback);
 
 		// 2秒后自动消失
-		setTimeout(() => {
-			feedback.style.opacity = '0';
-			feedback.style.transition = 'opacity 0.3s ease';
-			setTimeout(() => feedback.remove(), 300);
+		window.setTimeout(() => {
+			feedback.setCssProps({ opacity: '0', transition: 'opacity 0.3s ease' });
+			window.setTimeout(() => feedback.remove(), 300);
 		}, 2000);
 	}
 
@@ -1554,7 +1573,7 @@ export class TaskFlowView extends ItemView {
 
 		const barWrap = statsEl.createEl('div', { cls: 'tasks-view-progress-bar' });
 		this.progressFill = barWrap.createEl('div', { cls: 'tasks-view-progress-fill' });
-		this.progressFill.style.width = '0%';
+		this.progressFill.setCssProps({ width: '0%' });
 		const pills = statsEl.createEl('div', { cls: 'tasks-view-stat-pills' });
 
 		// 每个统计项 = 一张卡片：圆点（::before）+ 数量 + 名称。
@@ -1712,8 +1731,8 @@ export class TaskFlowView extends ItemView {
 	 * tab 计数那套（重要提醒不需要数量徽标）。
 	 */
 	private observeImportantBody(body: HTMLElement): void {
-		if ((body as any).__tfImpObserved) return;
-		(body as any).__tfImpObserved = true;
+		if ((body as unknown).__tfImpObserved) return;
+		(body as unknown).__tfImpObserved = true;
 
 		const onMutate = () => {
 			const hasItems = body.querySelector('.task-list-item');
@@ -1723,8 +1742,8 @@ export class TaskFlowView extends ItemView {
 				return;
 			}
 			// 暂时没有任务项：等容器静默 EMPTY_QUIET_MS 再判定为空，避免渲染中途误显
-			if (this.importantEmptyTimer) clearTimeout(this.importantEmptyTimer);
-			this.importantEmptyTimer = setTimeout(() => {
+			if (this.importantEmptyTimer) window.clearTimeout(this.importantEmptyTimer);
+			this.importantEmptyTimer = window.setTimeout(() => {
 				this.importantEmptyTimer = null;
 				if (!body.querySelector('.task-list-item')) this.renderImportantEmpty(body);
 			}, EMPTY_QUIET_MS);
@@ -1741,14 +1760,14 @@ export class TaskFlowView extends ItemView {
 	 */
 	private applyImportantTruncation(body: HTMLElement): void {
 		const more = this.importantMoreEl;
-		const items = Array.from(body.querySelectorAll('.task-list-item')) as HTMLElement[];
+		const items = Array.from(body.querySelectorAll<HTMLElement>('.task-list-item'));
 		if (items.length === 0) {
 			if (more) more.addClass('is-hidden');
 			return;
 		}
 		const MAX = 3;
 		if (items.length <= MAX) {
-			items.forEach((it) => (it.style.display = ''));
+			items.forEach((it) => it.setCssProps({ display: '' }));
 			if (more) {
 				more.addClass('is-hidden');
 				more.textContent = t('panel.more');
@@ -1756,13 +1775,13 @@ export class TaskFlowView extends ItemView {
 			return;
 		}
 		if (this.importantExpanded) {
-			items.forEach((it) => (it.style.display = ''));
+			items.forEach((it) => it.setCssProps({ display: '' }));
 			if (more) {
 				more.removeClass('is-hidden');
 				more.textContent = t('panel.collapse');
 			}
 		} else {
-			items.forEach((it, i) => (it.style.display = i < MAX ? '' : 'none'));
+			items.forEach((it, i) => it.setCssProps({ display: i < MAX ? '' : 'none' }));
 			if (more) {
 				more.removeClass('is-hidden');
 				more.textContent = t('panel.moreCount', { n: items.length - MAX });

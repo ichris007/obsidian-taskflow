@@ -1,4 +1,4 @@
-import { ButtonComponent, Modal, Notice, Setting, setIcon } from 'obsidian';
+import { ButtonComponent, Modal, Notice, setIcon } from 'obsidian';
 import { t } from '../i18n';
 import { GROUP_ICONS_SORTED, isKnownIcon } from '../icons';
 
@@ -29,10 +29,10 @@ export interface TFFieldSpec {
 	type: TFFieldType;
 	placeholder?: string;
 	options?: Record<string, string>;
-	value: any;
-	onChange: (value: any) => void | Promise<void>;
+	value: unknown;
+	onChange: (value: unknown) => void | Promise<void>;
 	/** 返回错误文案，null 表示通过 */
-	validation?: (value: any) => string | null;
+	validation?: (value: unknown) => string | null;
 	rows?: number;
 }
 
@@ -40,7 +40,7 @@ export interface TFFieldHandle {
 	spec: TFFieldSpec;
 	el: HTMLElement;
 	/** 读取控件当前值，保存时用于整表校验 */
-	read: () => any;
+	read: () => unknown;
 	/** 弹窗关闭时清理挂到 body 上的浮层（icon-picker 用） */
 	teardown?: () => void;
 }
@@ -70,8 +70,8 @@ function setClasses(el: HTMLElement, cls: string): void {
 function paintField(el: HTMLElement, error: string | null): void {
 	const input = el.querySelector(
 		'.tf-field-input, .tf-field-textarea, .tf-field-select',
-	) as HTMLElement | null;
-	const msg = el.querySelector('.tf-field-message') as HTMLElement | null;
+	);
+	const msg = el.querySelector('.tf-field-message');
 	input?.classList.toggle('tf-error', !!error);
 	input?.classList.toggle('tf-success', !error);
 	if (msg) {
@@ -93,7 +93,7 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 	}
 
 	const wrap = el.createEl('div', { cls: 'tf-field-input-wrapper' });
-	let read: () => any = () => spec.value;
+	let read: () => unknown = () => spec.value;
 	let handleTeardown: (() => void) | undefined;
 
 	switch (spec.type) {
@@ -101,8 +101,8 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 			const input = wrap.createEl('input', {
 				cls: 'tf-field-input',
 				attr: { type: 'text', placeholder: spec.placeholder ?? '' },
-			}) as HTMLInputElement;
-			input.value = String(spec.value ?? '');
+			});
+			input.value = (spec.value as string | undefined) ?? '';
 			read = () => input.value;
 			input.addEventListener('input', () => {
 				paintField(el, null);
@@ -117,8 +117,8 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 			const input = wrap.createEl('textarea', {
 				cls: 'tf-field-textarea',
 				attr: { placeholder: spec.placeholder ?? '', rows: String(spec.rows ?? 4) },
-			}) as HTMLTextAreaElement;
-			input.value = String(spec.value ?? '');
+			});
+			input.value = (spec.value as string | undefined) ?? '';
 			read = () => input.value;
 			input.addEventListener('input', () => {
 				paintField(el, null);
@@ -130,11 +130,11 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 			break;
 		}
 		case 'dropdown': {
-			const select = wrap.createEl('select', { cls: 'tf-field-select' }) as HTMLSelectElement;
+			const select = wrap.createEl('select', { cls: 'tf-field-select' });
 			for (const [value, label] of Object.entries(spec.options ?? {})) {
 				select.createEl('option', { attr: { value }, text: label });
 			}
-			select.value = String(spec.value ?? '');
+			select.value = (spec.value as string | undefined) ?? '';
 			read = () => select.value;
 			select.addEventListener('change', () => {
 				paintField(el, null);
@@ -149,7 +149,7 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 			const checkbox = toggleWrap.createEl('input', {
 				cls: 'tf-switch-input',
 				attr: { type: 'checkbox', 'aria-label': spec.label },
-			}) as HTMLInputElement;
+			});
 			checkbox.checked = Boolean(spec.value);
 			const track = toggleWrap.createEl('span', { cls: 'tf-switch-track' });
 			track.createEl('span', { cls: 'tf-switch-thumb' });
@@ -163,8 +163,8 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 			const input = wrap.createEl('input', {
 				cls: 'tf-field-input',
 				attr: { type: 'text', readonly: 'true' },
-			}) as HTMLInputElement;
-			input.value = String(spec.value ?? '');
+			});
+			input.value = (spec.value as string | undefined) ?? '';
 			read = () => input.value;
 			break;
 		}
@@ -181,19 +181,19 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 			const trigger = wrap.createEl('button', {
 				cls: 'tf-icon-trigger tf-field-input',
 				attr: { type: 'button', 'aria-haspopup': 'listbox' },
-			}) as HTMLButtonElement;
+			});
 			const iconBox = trigger.createEl('span', { cls: 'tf-icon-trigger-icon' });
-			setIcon(iconBox, String(spec.value ?? 'folder'));
+			setIcon(iconBox, (spec.value as string | undefined) ?? 'folder');
 			const nameEl = trigger.createEl('span', {
 				cls: 'tf-icon-trigger-name',
-				text: String(spec.value ?? 'folder'),
+				text: (spec.value as string | undefined) ?? 'folder',
 			});
 			trigger.createEl('span', { cls: 'tf-icon-trigger-caret' });
 
 			// 优先挂到弹窗主体（.tf-modal），没有就回落字段自身（测试桩常见）
 			const root: HTMLElement =
-				typeof (el as any).closest === 'function'
-					? ((el.closest('.tf-modal') as HTMLElement | null) ?? wrap)
+				typeof (el as unknown).closest === 'function'
+					? ((el.closest('.tf-modal')) ?? wrap)
 					: wrap;
 			const panel = root.createEl('div', { cls: 'tf-icon-panel is-hidden' });
 			// 面板内的交互不要冒泡到弹窗/遮罩，避免误关
@@ -201,15 +201,15 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 			const search = panel.createEl('input', {
 				cls: 'tf-icon-search',
 				attr: { type: 'text', placeholder: t('modal.iconSearch') },
-			}) as HTMLInputElement;
+			});
 			const grid = panel.createEl('div', { cls: 'tf-icon-grid' });
 
-			let current = String(spec.value ?? 'folder');
+			let current = (spec.value as string | undefined) ?? 'folder';
 			let backdrop: HTMLElement | null = null;
 			let open = false;
 			const scrollForm =
-				typeof (el as any).closest === 'function'
-					? (el.closest('.tf-modal-form') as HTMLElement | null)
+				typeof (el as unknown).closest === 'function'
+					? (el.closest('.tf-modal-form'))
 					: null;
 
 			const positionPanel = () => {
@@ -370,8 +370,8 @@ export abstract class TFEditModal extends Modal {
 	static launch<T extends Modal>(modal: T, label = t('modal.editTitle')): T {
 		try {
 			modal.open();
-		} catch (error: any) {
-			const msg = error?.message ?? String(error);
+		} catch (error: unknown) {
+			const msg = (error as Error)?.message ?? String(error);
 			console.error('[TaskFlow] 打开弹窗失败:', error);
 			try {
 				new Notice(t('modal.openFail', { label, msg }));
@@ -399,7 +399,7 @@ export abstract class TFEditModal extends Modal {
 	onOpen(): void {
 		try {
 			this.renderContent();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			console.error('[TaskFlow] 弹窗渲染失败:', error);
 			this.renderError(error);
 		}
@@ -612,7 +612,7 @@ export abstract class TFEditModal extends Modal {
 			await this.doSave();
 			this.dirty = false;
 			this.close();
-		} catch (error: any) {
+		} catch (error: unknown) {
 			this.setStatus(t('modal.saveFail', { msg: error?.message ?? String(error) }), 'error');
 		} finally {
 			this.saving = false;

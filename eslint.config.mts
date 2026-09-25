@@ -21,13 +21,20 @@ export default tseslint.config(
 				...globals.browser,
 			},
 			parserOptions: {
-				projectService: {
-					allowDefaultProject: ['eslint.config.mts', 'manifest.json'],
-				},
+				project: './tsconfig.json',
 				tsconfigRootDir: import.meta.dirname,
 				extraFileExtensions: ['.json'],
 			},
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		// 项目级微调：
+		// - sentence-case 与品牌名「TaskFlow」冲突（规则会把 TaskFlow 改成 Taskflow），关闭以免误伤 UI 文案。
+		// - prefer-active-doc 仅影响 popout 窗口兼容，且测试桩未定义 activeDocument，关闭避免误改/测不过。
+		rules: {
+			'obsidianmd/ui/sentence-case': 'off',
+			'obsidianmd/prefer-active-doc': 'off',
+		},
+	},
 );

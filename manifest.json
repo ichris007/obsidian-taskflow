@@ -1,9 +1,9 @@
 {
 	"id": "taskflow",
 	"name": "TaskFlow",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"minAppVersion": "1.12.7",
-	"description": "An action workbench for Obsidian Tasks that reduces decision cost and helps you start faster.",
+	"description": "An action workbench for Tasks that reduces decision cost and helps you start faster.",
 	"author": "iChris007",
 	"authorUrl": "https://github.com/ichris007",
 	"isDesktopOnly": false

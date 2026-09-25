@@ -4,6 +4,7 @@ import type { TabConfig, TabGroup } from '../types';
 import { getTabGroup } from '../types';
 import { TAB_GROUPS } from '../settings';
 import { TFEditModal } from './tf-edit-modal';
+import { ConfirmModal } from './confirm-modal';
 import { localizedTabLabel, t } from '../i18n';
 
 /**
@@ -31,7 +32,7 @@ export class TaskFlowConfigureModal extends TFEditModal {
 			inboxFilePath: plugin.settings.data.inboxFilePath,
 			excludedFolders: plugin.settings.data.excludedFolders,
 		};
-		this.localTabs = JSON.parse(JSON.stringify(plugin.settings.data.globalTabs));
+		this.localTabs = JSON.parse(JSON.stringify(plugin.settings.data.globalTabs)) as TabConfig[];
 	}
 
 	protected renderContent(): void {
@@ -56,7 +57,7 @@ export class TaskFlowConfigureModal extends TFEditModal {
 			type: 'text',
 			placeholder: t('modal.inboxExample'),
 			value: this.localGlobalSettings.inboxFilePath,
-			validation: (v) => (v.trim() ? null : t('modal.errPathEmpty')),
+			validation: (v) => ((v as string).trim() ? null : t('modal.errPathEmpty')),
 			onChange: (v) => {
 				this.localGlobalSettings.inboxFilePath = v;
 				this.markDirty();
@@ -106,13 +107,13 @@ export class TaskFlowConfigureModal extends TFEditModal {
 						text: t('common.delete'),
 						cls: 'taskflow-config-tab-btn taskflow-config-tab-delete',
 					})
-					.addEventListener('click', () => {
-						if (confirm(t('settings.confirm.deleteTab', { name: tab.label }))) {
-							this.localTabs.splice(index, 1);
-							this.markDirty();
-							this.refreshTabs();
-						}
-					});
+				.addEventListener('click', () => {
+					new ConfirmModal(this.app, t('settings.confirm.deleteTab', { name: tab.label }), () => {
+						this.localTabs.splice(index, 1);
+						this.markDirty();
+						this.refreshTabs();
+					}).open();
+				});
 			});
 		}
 
@@ -211,7 +212,7 @@ export class TabEditModal extends TFEditModal {
 			type: 'text',
 			placeholder: t('modal.labelExample'),
 			value: this.tab.label,
-			validation: (v) => (v.trim() ? null : t('modal.errLabelEmpty')),
+			validation: (v) => ((v as string).trim() ? null : t('modal.errLabelEmpty')),
 			onChange: (v) => {
 				this.tab.label = v;
 				this.markDirty();
@@ -226,7 +227,7 @@ export class TabEditModal extends TFEditModal {
 			placeholder: t('modal.queryPlaceholder'),
 			value: this.tab.query,
 			rows: 5,
-			validation: (v) => (v.trim() ? null : t('modal.errQueryEmpty')),
+			validation: (v) => ((v as string).trim() ? null : t('modal.errQueryEmpty')),
 			onChange: (v) => {
 				this.tab.query = v;
 				this.markDirty();
@@ -321,7 +322,7 @@ export class GroupEditModal extends TFEditModal {
 			placeholder: t('modal.groupIdExample'),
 			value: this.group.id,
 			validation: (v) => {
-				if (!v.trim()) return t('modal.errIdEmpty');
+				if (!(v as string).trim()) return t('modal.errIdEmpty');
 				if (!/^[a-z0-9-]+$/.test(v)) return t('modal.idRule');
 				return null;
 			},
@@ -338,7 +339,7 @@ export class GroupEditModal extends TFEditModal {
 			type: 'text',
 			placeholder: t('modal.groupExample'),
 			value: this.group.label,
-			validation: (v) => (v.trim() ? null : t('modal.errLabelEmpty')),
+			validation: (v) => ((v as string).trim() ? null : t('modal.errLabelEmpty')),
 			onChange: (v) => {
 				this.group.label = v;
 				this.markDirty();
