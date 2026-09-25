@@ -1,5 +1,10 @@
 # TaskFlow
 
+<p align="center">
+  <img src="./screenshot/split_full_cn.png" width="600" />
+</p>
+
+
 [English](./README.md) | [中文](./README_ZH.md)
 
 > **你不缺任务。你缺的是下一步。**
