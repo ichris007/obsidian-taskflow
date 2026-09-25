@@ -14,7 +14,7 @@ import { formatHeadClock, lunarCN, weekdayName } from './lunar';
 import { getUiLang, localizedTabLabel, t } from './i18n';
 import { ScanCache } from './cache-manager';
 
-export const VIEW_TYPE_TASKFLOW = 'obsidian-taskflow';
+export const VIEW_TYPE_TASKFLOW = 'taskflow-view';
 
 type TabId = string;
 
@@ -305,7 +305,7 @@ export class TaskFlowView extends ItemView {
 	async onOpen(): Promise<void> {
 		this.addAction('settings', 'TaskFlow settings', () => {
 			(this.app.setting as any).open();
-			(this.app.setting as any).openTabById('obsidian-taskflow');
+			(this.app.setting as any).openTabById('taskflow');
 		});
 
 		this.buildShell();
@@ -1435,7 +1435,7 @@ export class TaskFlowView extends ItemView {
 		setIcon(settingsBtn, 'settings');
 		settingsBtn.addEventListener('click', () => {
 			(this.app.setting as any).open();
-			(this.app.setting as any).openTabById('obsidian-taskflow');
+			(this.app.setting as any).openTabById('taskflow');
 		});
 
 		input.addEventListener('keydown', async (e) => {
