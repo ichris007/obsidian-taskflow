@@ -10,6 +10,7 @@ import {
 } from './types';
 import { persistCoverImage, removeCoverImage, resolveCoverFile } from './cover';
 import { defaultBannerSvg } from './brand';
+import { mountTrustedSvg } from './svg';
 import { formatHeadClock, lunarCN, weekdayName } from './lunar';
 import { getUiLang, localizedTabLabel, t } from './i18n';
 import { ScanCache } from './cache-manager';
@@ -267,6 +268,10 @@ export class TaskFlowView extends ItemView {
 	private zeroRetries = 0;
 	/** 每个 body 的计数去抖定时器 */
 	private countTimers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
+	/** 已挂载空状态观察者的 tab body（幂等，避免重复挂 MutationObserver） */
+	private observedBodies = new WeakSet<HTMLElement>();
+	/** 已挂载观察者的「重要提醒」body */
+	private observedImportantBodies = new WeakSet<HTMLElement>();
 
 	constructor(leaf: WorkspaceLeaf, plugin: TaskViewsPlugin) {
 		super(leaf);
@@ -405,13 +410,13 @@ export class TaskFlowView extends ItemView {
 		}
 
 		// 主内容区
-		const main = container.createEl('div', { cls: 'tasks-view-main' });
+		const main = container.createDiv( { cls: 'tasks-view-main' });
 
 		// 面板模块（今日概览 / 重要提醒）：都在快捷输入框「上方」、并排展示。
 		// 关掉其中一个，另一个自动占满整行；两个都关则整块不渲染。
 		const data = this.plugin.settings.data;
 		if (data.showTodayOverview || data.showImportantReminders) {
-			const panels = main.createEl('div', { cls: 'tf-panels' });
+			const panels = main.createDiv( { cls: 'tf-panels' });
 			if (data.showTodayOverview) this.renderTodayOverview(panels);
 			if (data.showImportantReminders) this.renderImportantModule(panels);
 		}
@@ -439,7 +444,7 @@ export class TaskFlowView extends ItemView {
 		const showText = data.showHeadText ?? true;
 		if (!showCover && !showText) return;
 
-		const head = container.createEl('div', { cls: 'tf-head' });
+		const head = container.createDiv( { cls: 'tf-head' });
 		// 两个都开时头部是「封面 + 文字」；只开文字则没有图片区域；只开封面则没有文字行。
 		head.toggleClass('is-cover-only', showCover && !showText);
 		head.toggleClass('is-text-only', showText && !showCover);
@@ -454,18 +459,18 @@ export class TaskFlowView extends ItemView {
 	/** 文字行：左「工作台名 + slogan」，右「日期时间 + 星期/农历」 */
 	private renderHeadText(head: HTMLElement): void {
 		const data = this.plugin.settings.data;
-		const row = head.createEl('div', { cls: 'tf-head-row' });
+		const row = head.createDiv( { cls: 'tf-head-row' });
 
-		const left = row.createEl('div', { cls: 'tf-head-left' });
+		const left = row.createDiv( { cls: 'tf-head-left' });
 		const title = (data.workbenchTitle ?? '').trim() || DEFAULT_WORKBENCH_TITLE;
-		left.createEl('div', { cls: 'tf-head-title', text: title });
+		left.createDiv( { cls: 'tf-head-title', text: title });
 
 		const slogan = resolveSlogan(data.workbenchSlogan);
-		if (slogan) left.createEl('div', { cls: 'tf-head-slogan', text: slogan });
+		if (slogan) left.createDiv( { cls: 'tf-head-slogan', text: slogan });
 
-		const right = row.createEl('div', { cls: 'tf-head-right' });
-		this.headTimeEl = right.createEl('div', { cls: 'tf-head-time' });
-		this.headMetaEl = right.createEl('div', { cls: 'tf-head-meta' });
+		const right = row.createDiv( { cls: 'tf-head-right' });
+		this.headTimeEl = right.createDiv( { cls: 'tf-head-time' });
+		this.headMetaEl = right.createDiv( { cls: 'tf-head-meta' });
 		this.renderHeadClock();
 	}
 
@@ -503,7 +508,7 @@ export class TaskFlowView extends ItemView {
 	 */
 	private renderCover(head: HTMLElement): void {
 		const data = this.plugin.settings.data;
-		const cover = head.createEl('div', { cls: 'tf-head-cover' });
+		const cover = head.createDiv( { cls: 'tf-head-cover' });
 
 		const file = resolveCoverFile(this.app, data.coverImagePath);
 		if (!file) this.mountDefaultBanner(cover);
@@ -528,7 +533,7 @@ export class TaskFlowView extends ItemView {
 			this.bindCoverDrag(img, cover);
 		}
 
-		const bar = cover.createEl('div', { cls: 'tf-head-cover-bar' });
+		const bar = cover.createDiv( { cls: 'tf-head-cover-bar' });
 
 		// 隐藏的文件选择器：不画在界面上，由下面的按钮 click() 唤起
 		const picker = cover.createEl('input', {
@@ -562,14 +567,11 @@ export class TaskFlowView extends ItemView {
 	private mountDefaultBanner(cover: HTMLElement): void {
 		if (cover.querySelector('.tf-head-cover-default')) return;
 		cover.addClass('is-default-banner');
-		const holder = cover.createEl('div', { cls: 'tf-head-cover-default' });
-		try {
-			// 受信任的内置默认横幅 SVG（仓库内写死，非用户输入），注入到封面占位。
-			// eslint-disable-next-line @microsoft/sdl/no-inner-html, no-unsanitized/property
-			holder.innerHTML = defaultBannerSvg(t('banner.line'));
-		} catch (error) {
-			// innerHTML 不被支持时（极少数环境）不能把整个头部拖崩
-			console.error('[TaskFlow] 默认横幅渲染失败:', error);
+		const holder = cover.createDiv( { cls: 'tf-head-cover-default' });
+		// 受信任的内置默认横幅 SVG（仓库内写死，非用户输入）挂到封面占位；
+		// 挂载失败（极少数环境）回退时也走这里，不能把整个头部拖崩。
+		if (!mountTrustedSvg(holder, defaultBannerSvg(t('banner.line')))) {
+			console.error('[TaskFlow] 默认横幅渲染失败');
 			cover.removeClass('is-default-banner');
 			holder.remove();
 		}
@@ -651,8 +653,8 @@ export class TaskFlowView extends ItemView {
 	 * 渲染第一层分组 tab (动态从 settings 加载)
 	 */
 	private renderGroupTabs(container: HTMLElement) {
-		const bar = container.createEl('div', { cls: 'tasks-view-group-bar' });
-		const segment = bar.createEl('div', { cls: 'tasks-view-group-segment' });
+		const bar = container.createDiv( { cls: 'tasks-view-group-bar' });
+		const segment = bar.createDiv( { cls: 'tasks-view-group-segment' });
 
 		for (const g of this.getGroups()) {
 			const btn = segment.createEl('button', {
@@ -725,11 +727,11 @@ export class TaskFlowView extends ItemView {
 		const sortedTabs = [...this.getTabs()].sort((a, b) => a.order - b.order);
 
 		// Tab bar
-		const tabBar = container.createEl('div', { cls: 'tasks-view-tab-bar' });
-		const segment = tabBar.createEl('div', { cls: 'tasks-view-tab-segment' });
+		const tabBar = container.createDiv( { cls: 'tasks-view-tab-bar' });
+		const segment = tabBar.createDiv( { cls: 'tasks-view-tab-segment' });
 
 		// Tab panels (scroll area per tab)
-		const panelWrap = container.createEl('div', { cls: 'tasks-view-tab-panels' });
+		const panelWrap = container.createDiv( { cls: 'tasks-view-tab-panels' });
 
 		for (const tab of sortedTabs) {
 			const group = getTabGroup(tab, groups);
@@ -740,7 +742,7 @@ export class TaskFlowView extends ItemView {
 			this.tabBtns[tab.id] = btn;
 			this.tabCollapsed[tab.id] = false;
 
-			const panel = panelWrap.createEl('div', { cls: 'tasks-view-tab-panel tasks-view-scroll' });
+			const panel = panelWrap.createDiv( { cls: 'tasks-view-tab-panel tasks-view-scroll' });
 			this.tabPanels[tab.id] = panel;
 
 			// Build single section for each tab (ensure showSectionHeader has default)
@@ -749,12 +751,12 @@ export class TaskFlowView extends ItemView {
 		}
 
 		// 分组下没有 tab 时的占位提示（避免整块空白）
-		this.emptyGroupEl = panelWrap.createEl('div', { cls: 'tasks-view-empty-group' });
-		this.emptyGroupEl.createEl('div', { cls: 'tasks-view-empty-group-icon', text: '🗂' });
-		this.emptyGroupTitleEl = this.emptyGroupEl.createEl('div', {
+		this.emptyGroupEl = panelWrap.createDiv( { cls: 'tasks-view-empty-group' });
+		this.emptyGroupEl.createDiv( { cls: 'tasks-view-empty-group-icon', text: '🗂' });
+		this.emptyGroupTitleEl = this.emptyGroupEl.createDiv( {
 			cls: 'tasks-view-empty-group-title',
 		});
-		this.emptyGroupEl.createEl('div', {
+		this.emptyGroupEl.createDiv( {
 			cls: 'tasks-view-empty-group-desc',
 			text: t('empty.noTabsHint'),
 		});
@@ -775,19 +777,19 @@ export class TaskFlowView extends ItemView {
 	}
 
 	private buildTabSection(panel: HTMLElement, tab: { id: TabId; label: string; showSectionHeader?: boolean }) {
-		const section = panel.createEl('div', { cls: 'tasks-view-section' });
+		const section = panel.createDiv( { cls: 'tasks-view-section' });
 
 		// Header with chevron
-		const header = section.createEl('div', { cls: 'tasks-view-section-header' });
-		const chevron = header.createEl('div', { cls: 'tasks-view-section-chevron' });
+		const header = section.createDiv( { cls: 'tasks-view-section-header' });
+		const chevron = header.createDiv( { cls: 'tasks-view-section-chevron' });
 		setIcon(chevron, 'chevron-down');
 
-		header.createEl('span', { cls: 'tasks-view-section-title', text: localizedTabLabel(tab) });
+		header.createSpan( { cls: 'tasks-view-section-title', text: localizedTabLabel(tab) });
 
-		const count = header.createEl('span', { cls: 'tasks-view-section-count', text: '0' });
+		const count = header.createSpan( { cls: 'tasks-view-section-count', text: '0' });
 		this.tabCounts[tab.id] = count;
 
-		const body = section.createEl('div', { cls: 'tasks-view-section-body' });
+		const body = section.createDiv( { cls: 'tasks-view-section-body' });
 		this.tabBodies[tab.id] = body;
 		this.observeBody(body, tab);
 
@@ -1112,8 +1114,8 @@ export class TaskFlowView extends ItemView {
 	 * 幂等：同一 body 只挂一次。
 	 */
 	private observeBody(body: HTMLElement, tab: { id: TabId; label: string }): void {
-		if ((body as unknown).__tfObserved) return;
-		(body as unknown).__tfObserved = true;
+		if (this.observedBodies.has(body)) return;
+		this.observedBodies.add(body);
 
 		const onMutate = () => {
 			// 计数只取决于 DOM 现状，但全表 querySelectorAll 很贵（列表越大越慢），
@@ -1381,10 +1383,10 @@ export class TaskFlowView extends ItemView {
 		// Clear container and add empty state styling
 		section.classList.add('tasks-view-empty-state');
 
-		const emptyEl = section.createEl('div', { cls: 'tasks-view-empty' });
+		const emptyEl = section.createDiv( { cls: 'tasks-view-empty' });
 
 		// Icon
-		emptyEl.createEl('div', { cls: 'tasks-view-empty-icon' }).textContent = '📭';
+		emptyEl.createDiv( { cls: 'tasks-view-empty-icon' }).textContent = '📭';
 
 		// Title
 		emptyEl.createEl('h3', {
@@ -1439,9 +1441,9 @@ export class TaskFlowView extends ItemView {
 	// ── Quick add ───────────────────────────────────────
 
 	private renderQuickAdd(container: HTMLElement) {
-		const wrap = container.createEl('div', { cls: 'tasks-view-quick-add' });
+		const wrap = container.createDiv( { cls: 'tasks-view-quick-add' });
 
-		const topRow = wrap.createEl('div', { cls: 'tasks-view-quick-add-top' });
+		const topRow = wrap.createDiv( { cls: 'tasks-view-quick-add-top' });
 		const input = topRow.createEl('input', {
 			cls: 'tasks-view-quick-add-input',
 			attr: { placeholder: 'Add to inbox…', type: 'text' },
@@ -1526,7 +1528,7 @@ export class TaskFlowView extends ItemView {
 		}
 
 		// 创建反馈元素
-		const feedback = document.createElement('div');
+		const feedback = createDiv();
 		feedback.className = `tasks-view-quick-add-feedback ${success ? 'success' : 'error'}`;
 		feedback.textContent = message;
 		feedback.style.cssText = `
@@ -1555,7 +1557,7 @@ export class TaskFlowView extends ItemView {
 	// ── Stats ───────────────────────────────────────────
 
 	private buildStatsShell(container: HTMLElement) {
-		const statsEl = container.createEl('div', { cls: 'tasks-view-stats' });
+		const statsEl = container.createDiv( { cls: 'tasks-view-stats' });
 		this.statsEl = statsEl;
 
 		// Footer header: 标题 + 百分比 + 折叠箭头。
@@ -1564,24 +1566,24 @@ export class TaskFlowView extends ItemView {
 			cls: 'tasks-view-stats-header',
 			attr: { type: 'button', 'aria-label': t('stats.toggleAria') },
 		});
-		header.createEl('span', { cls: 'tasks-view-stats-label', text: t('stats.title') });
-		this.statsPct = header.createEl('span', { cls: 'tasks-view-stats-pct', text: '0%' });
-		this.statsChevron = header.createEl('span', { cls: 'tasks-view-stats-chevron' });
+		header.createSpan( { cls: 'tasks-view-stats-label', text: t('stats.title') });
+		this.statsPct = header.createSpan( { cls: 'tasks-view-stats-pct', text: '0%' });
+		this.statsChevron = header.createSpan( { cls: 'tasks-view-stats-chevron' });
 		header.addEventListener('click', () => {
 			void this.toggleStatsCategories();
 		});
 
-		const barWrap = statsEl.createEl('div', { cls: 'tasks-view-progress-bar' });
-		this.progressFill = barWrap.createEl('div', { cls: 'tasks-view-progress-fill' });
+		const barWrap = statsEl.createDiv( { cls: 'tasks-view-progress-bar' });
+		this.progressFill = barWrap.createDiv( { cls: 'tasks-view-progress-fill' });
 		this.progressFill.setCssProps({ width: '0%' });
-		const pills = statsEl.createEl('div', { cls: 'tasks-view-stat-pills' });
+		const pills = statsEl.createDiv( { cls: 'tasks-view-stat-pills' });
 
 		// 每个统计项 = 一张卡片：圆点（::before）+ 数量 + 名称。
 		// 返回 count 元素，供 updateStats 刷新数字；名称在此固定。
 		const makePill = (mod: string, name: string): HTMLElement => {
-			const pill = pills.createEl('span', { cls: `tasks-view-stat-pill tasks-view-stat-pill--${mod}` });
-			const count = pill.createEl('span', { cls: 'tasks-view-stat-count', text: '0' });
-			pill.createEl('span', { cls: 'tasks-view-stat-name', text: name });
+			const pill = pills.createSpan( { cls: `tasks-view-stat-pill tasks-view-stat-pill--${mod}` });
+			const count = pill.createSpan( { cls: 'tasks-view-stat-count', text: '0' });
+			pill.createSpan( { cls: 'tasks-view-stat-name', text: name });
 			return count;
 		};
 
@@ -1631,10 +1633,10 @@ export class TaskFlowView extends ItemView {
 	 * 外加「今日」「本周」两个完成率环（口径见 updateStats）。数字由 updateStats() 刷新。
 	 */
 	private renderTodayOverview(container: HTMLElement): void {
-		const card = container.createEl('div', { cls: 'tf-today' });
+		const card = container.createDiv( { cls: 'tf-today' });
 
 		// 双环：今日完成率 / 本周完成率（置于左侧）
-		const rings = card.createEl('div', { cls: 'tf-today-rings' });
+		const rings = card.createDiv( { cls: 'tf-today-rings' });
 		const today = this.renderRing(rings, t('panel.todayRate'));
 		this.toRingTodayDial = today.dial;
 		this.toRingTodayText = today.text;
@@ -1643,7 +1645,7 @@ export class TaskFlowView extends ItemView {
 		this.toRingWeekText = week.text;
 
 		// 5 个指标：成两列，置于双环右侧
-		const stats = card.createEl('div', { cls: 'tf-today-stats' });
+		const stats = card.createDiv( { cls: 'tf-today-stats' });
 		this.toTodoEl = this.makeTodayStat(stats, 'tf-today-todo', t('panel.todayTodo'));
 		this.toDoneEl = this.makeTodayStat(stats, 'tf-today-done', t('panel.doneToday'));
 		this.toInProgressEl = this.makeTodayStat(stats, 'tf-today-progress', t('panel.inProgress'));
@@ -1656,19 +1658,19 @@ export class TaskFlowView extends ItemView {
 	 * 用 conic-gradient 而非 SVG，规避 SVG 命名空间在 Obsidian / 测试桩下两套行为的问题。
 	 */
 	private renderRing(container: HTMLElement, label: string): { dial: HTMLElement; text: HTMLElement } {
-		const ring = container.createEl('div', { cls: 'tf-ring' });
-		const dial = ring.createEl('div', { cls: 'tf-ring-dial' });
-		dial.createEl('div', { cls: 'tf-ring-hole' });
-		const text = dial.createEl('div', { cls: 'tf-ring-text', text: '0%' });
-		ring.createEl('div', { cls: 'tf-ring-label', text: label });
+		const ring = container.createDiv( { cls: 'tf-ring' });
+		const dial = ring.createDiv( { cls: 'tf-ring-dial' });
+		dial.createDiv( { cls: 'tf-ring-hole' });
+		const text = dial.createDiv( { cls: 'tf-ring-text', text: '0%' });
+		ring.createDiv( { cls: 'tf-ring-label', text: label });
 		return { dial, text };
 	}
 
 	/** 一个指标 chip：大数字 + 小标签。返回数字元素供 updateStats 刷新。 */
 	private makeTodayStat(container: HTMLElement, mod: string, name: string): HTMLElement {
-		const item = container.createEl('div', { cls: `tf-today-stat ${mod}` });
-		const count = item.createEl('div', { cls: 'tf-today-stat-count', text: '0' });
-		item.createEl('div', { cls: 'tf-today-stat-name', text: name });
+		const item = container.createDiv( { cls: `tf-today-stat ${mod}` });
+		const count = item.createDiv( { cls: 'tf-today-stat-count', text: '0' });
+		item.createDiv( { cls: 'tf-today-stat-name', text: name });
 		return count;
 	}
 
@@ -1679,12 +1681,12 @@ export class TaskFlowView extends ItemView {
 	 * 这里只搭骨架 + 挂 observer；内容由 renderImportantReminders()（refresh 流程）填入。
 	 */
 	private renderImportantModule(container: HTMLElement): void {
-		const card = container.createEl('div', { cls: 'tf-important' });
+		const card = container.createDiv( { cls: 'tf-important' });
 
-		const body = card.createEl('div', { cls: 'tf-important-body' });
+		const body = card.createDiv( { cls: 'tf-important-body' });
 		this.importantBodyEl = body;
 
-		const more = card.createEl('div', { cls: 'tf-important-more is-hidden' });
+		const more = card.createDiv( { cls: 'tf-important-more is-hidden' });
 		more.textContent = t('panel.more');
 		more.addEventListener('click', () => {
 			this.importantExpanded = !this.importantExpanded;
@@ -1731,8 +1733,8 @@ export class TaskFlowView extends ItemView {
 	 * tab 计数那套（重要提醒不需要数量徽标）。
 	 */
 	private observeImportantBody(body: HTMLElement): void {
-		if ((body as unknown).__tfImpObserved) return;
-		(body as unknown).__tfImpObserved = true;
+		if (this.observedImportantBodies.has(body)) return;
+		this.observedImportantBodies.add(body);
 
 		const onMutate = () => {
 			const hasItems = body.querySelector('.task-list-item');
@@ -1794,10 +1796,10 @@ export class TaskFlowView extends ItemView {
 		// 与二级 tab 同理：空状态节点挂在 card（body 的父级），避免重渲染时抖动
 		const card = body.parentElement ?? body;
 		if (card.querySelector('.tf-important-empty')) return;
-		const empty = card.createEl('div', { cls: 'tf-important-empty' });
-		empty.createEl('div', { cls: 'tf-important-empty-icon', text: '🔔' });
-		empty.createEl('div', { cls: 'tf-important-empty-title', text: t('panel.importantEmpty') });
-		empty.createEl('div', {
+		const empty = card.createDiv( { cls: 'tf-important-empty' });
+		empty.createDiv( { cls: 'tf-important-empty-icon', text: '🔔' });
+		empty.createDiv( { cls: 'tf-important-empty-title', text: t('panel.importantEmpty') });
+		empty.createDiv( {
 			cls: 'tf-important-empty-desc',
 			text: t('panel.emptyImportant'),
 		});

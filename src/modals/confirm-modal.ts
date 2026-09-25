@@ -26,9 +26,9 @@ export class ConfirmModal extends Modal {
 		contentEl.empty();
 		contentEl.addClass('tf-confirm');
 
-		contentEl.createEl('div', { cls: 'tf-confirm-message', text: this.message });
+		contentEl.createDiv( { cls: 'tf-confirm-message', text: this.message });
 
-		const actions = contentEl.createEl('div', { cls: 'tf-confirm-actions' });
+		const actions = contentEl.createDiv( { cls: 'tf-confirm-actions' });
 
 		const cancelBtn = actions.createEl('button', {
 			text: t('common.cancel'),

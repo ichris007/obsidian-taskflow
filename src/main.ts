@@ -8,6 +8,7 @@ import type { TaskViewsSettings } from './types';
 import { resolveLang, setUiLang } from './i18n';
 import type { LangSetting } from './i18n';
 import { TASKFLOW_ICON_SVG } from './brand';
+import { mountTrustedSvg } from './svg';
 
 export default class TaskFlowPlugin extends Plugin {
 	settings!: TaskViewsSettings;
@@ -33,13 +34,9 @@ export default class TaskFlowPlugin extends Plugin {
 			void this.activateView();
 		});
 		// 换成自绘品牌标识（蓝紫渐变圆角方块 + 两道白波），与设置面板「关于」页同一枚；
-		// 万一注入失败就保留上面的 layout-dashboard 兜底，不至于没有图标可点。
-		try {
-			// 受信任的品牌 SVG 常量（仓库内写死，非用户输入），注入到 ribbon 图标。
-			// eslint-disable-next-line @microsoft/sdl/no-inner-html, no-unsanitized/property
-			ribbonEl.innerHTML = TASKFLOW_ICON_SVG;
-		} catch {
-			/* ignore */
+		// 挂载失败则保留上面的 layout-dashboard 兜底，不至于没有图标可点。
+		if (!mountTrustedSvg(ribbonEl, TASKFLOW_ICON_SVG)) {
+			// 挂载失败：保留 addRibbonIcon 的 layout-dashboard 兜底图标，无需额外处理
 		}
 
 		this.addSettingTab(new TaskViewsSettingTab(this.app, this));

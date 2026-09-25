@@ -1,7 +1,7 @@
 {
 	"name": "taskflow",
-	"version": "1.0.2",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"version": "1.0.4",
+	"description": "An action workbench for Tasks in Obsidian — reduce decision cost and start faster.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {

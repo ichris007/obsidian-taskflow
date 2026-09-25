@@ -82,17 +82,17 @@ function paintField(el: HTMLElement, error: string | null): void {
 
 /** 渲染单个表单字段（三个弹窗共用，避免各写一份） */
 export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFieldHandle {
-	const el = container.createEl('div', { cls: 'tf-field' });
+	const el = container.createDiv( { cls: 'tf-field' });
 
 	const labelText = el
 		.createEl('label', { cls: 'tf-field-label' })
-		.createEl('div', { cls: 'tf-field-label-text' });
-	labelText.createEl('span', { cls: 'tf-field-name', text: spec.label });
+		.createDiv( { cls: 'tf-field-label-text' });
+	labelText.createSpan( { cls: 'tf-field-name', text: spec.label });
 	if (spec.description) {
-		labelText.createEl('span', { cls: 'tf-field-desc', text: spec.description });
+		labelText.createSpan( { cls: 'tf-field-desc', text: spec.description });
 	}
 
-	const wrap = el.createEl('div', { cls: 'tf-field-input-wrapper' });
+	const wrap = el.createDiv( { cls: 'tf-field-input-wrapper' });
 	let read: () => unknown = () => spec.value;
 	let handleTeardown: (() => void) | undefined;
 
@@ -151,8 +151,8 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 				attr: { type: 'checkbox', 'aria-label': spec.label },
 			});
 			checkbox.checked = Boolean(spec.value);
-			const track = toggleWrap.createEl('span', { cls: 'tf-switch-track' });
-			track.createEl('span', { cls: 'tf-switch-thumb' });
+			const track = toggleWrap.createSpan( { cls: 'tf-switch-track' });
+			track.createSpan( { cls: 'tf-switch-thumb' });
 			read = () => checkbox.checked;
 			checkbox.addEventListener('change', () => {
 				void spec.onChange(checkbox.checked);
@@ -182,33 +182,33 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 				cls: 'tf-icon-trigger tf-field-input',
 				attr: { type: 'button', 'aria-haspopup': 'listbox' },
 			});
-			const iconBox = trigger.createEl('span', { cls: 'tf-icon-trigger-icon' });
+			const iconBox = trigger.createSpan( { cls: 'tf-icon-trigger-icon' });
 			setIcon(iconBox, (spec.value as string | undefined) ?? 'folder');
-			const nameEl = trigger.createEl('span', {
+			const nameEl = trigger.createSpan( {
 				cls: 'tf-icon-trigger-name',
 				text: (spec.value as string | undefined) ?? 'folder',
 			});
-			trigger.createEl('span', { cls: 'tf-icon-trigger-caret' });
+			trigger.createSpan( { cls: 'tf-icon-trigger-caret' });
 
 			// 优先挂到弹窗主体（.tf-modal），没有就回落字段自身（测试桩常见）
 			const root: HTMLElement =
-				typeof (el as unknown).closest === 'function'
+				typeof el.closest === 'function'
 					? ((el.closest('.tf-modal')) ?? wrap)
 					: wrap;
-			const panel = root.createEl('div', { cls: 'tf-icon-panel is-hidden' });
+			const panel = root.createDiv( { cls: 'tf-icon-panel is-hidden' });
 			// 面板内的交互不要冒泡到弹窗/遮罩，避免误关
 			panel.addEventListener('mousedown', (e) => e.stopPropagation());
 			const search = panel.createEl('input', {
 				cls: 'tf-icon-search',
 				attr: { type: 'text', placeholder: t('modal.iconSearch') },
 			});
-			const grid = panel.createEl('div', { cls: 'tf-icon-grid' });
+			const grid = panel.createDiv( { cls: 'tf-icon-grid' });
 
 			let current = (spec.value as string | undefined) ?? 'folder';
 			let backdrop: HTMLElement | null = null;
 			let open = false;
 			const scrollForm =
-				typeof (el as unknown).closest === 'function'
+				typeof el.closest === 'function'
 					? (el.closest('.tf-modal-form'))
 					: null;
 
@@ -254,7 +254,7 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 				open = true;
 				positionPanel();
 				if (!backdrop) {
-					backdrop = root.createEl('div', { cls: 'tf-icon-backdrop' });
+					backdrop = root.createDiv( { cls: 'tf-icon-backdrop' });
 					backdrop.addEventListener('click', () => closePanel());
 				}
 				scrollForm?.addEventListener('scroll', reposition, true);
@@ -292,7 +292,7 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 							cls: 'tf-icon-tile tf-icon-tile-custom',
 							attr: { type: 'button', 'data-icon': q },
 						});
-						custom.createEl('span', {
+						custom.createSpan( {
 							cls: 'tf-icon-tile-name',
 							text: t('modal.iconUseCustom', { name: q }),
 						});
@@ -301,7 +301,7 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 							select(q);
 						});
 					} else {
-						grid.createEl('div', {
+						grid.createDiv( {
 							cls: 'tf-icon-empty',
 							text: t('modal.iconNoMatch'),
 						});
@@ -314,9 +314,9 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 						cls: 'tf-icon-tile',
 						attr: { type: 'button', 'data-icon': name, title: name },
 					});
-					const ico = tile.createEl('span', { cls: 'tf-icon-tile-icon' });
+					const ico = tile.createSpan( { cls: 'tf-icon-tile-icon' });
 					setIcon(ico, name);
-					tile.createEl('span', { cls: 'tf-icon-tile-name', text: name });
+					tile.createSpan( { cls: 'tf-icon-tile-name', text: name });
 					tile.addEventListener('click', (e) => {
 						e.stopPropagation();
 						select(name);
@@ -357,7 +357,7 @@ export function renderTFField(container: HTMLElement, spec: TFFieldSpec): TFFiel
 		}
 	}
 
-	el.createEl('div', { cls: 'tf-field-message' });
+	el.createDiv( { cls: 'tf-field-message' });
 	return { spec, el, read, teardown: handleTeardown };
 }
 
@@ -422,7 +422,7 @@ export abstract class TFEditModal extends Modal {
 				padding: '0',
 			});
 
-			const box = this.contentEl.createEl('div', { cls: 'tf-modal-error' });
+			const box = this.contentEl.createDiv( { cls: 'tf-modal-error' });
 			style(box, {
 				padding: '16px',
 				'border-radius': '8px',
@@ -432,8 +432,8 @@ export abstract class TFEditModal extends Modal {
 				'font-size': '13px',
 				'line-height': '1.6',
 			});
-			box.createEl('div', { text: t('modal.renderFail') });
-			box.createEl('div', {
+			box.createDiv( { text: t('modal.renderFail') });
+			box.createDiv( {
 				text: (error as Error)?.message ?? String(error),
 				cls: 'tf-modal-error-message',
 			});
@@ -448,7 +448,7 @@ export abstract class TFEditModal extends Modal {
 			});
 
 			// 保证有一条退路，不至于困在弹窗里
-			const btnWrap = this.contentEl.createEl('div');
+			const btnWrap = this.contentEl.createDiv();
 			style(btnWrap, { 'margin-top': '12px' });
 			const btn = new ButtonComponent(btnWrap);
 			btn.setButtonText(t('common.close')).setCta().onClick(() => this.close());
@@ -486,7 +486,7 @@ export abstract class TFEditModal extends Modal {
 			'line-height': '1.3',
 		});
 
-		const form = contentEl.createEl('div', { cls: 'tf-modal-form' });
+		const form = contentEl.createDiv( { cls: 'tf-modal-form' });
 		style(form, {
 			flex: '1 1 auto',
 			'min-height': '0',
@@ -498,7 +498,7 @@ export abstract class TFEditModal extends Modal {
 		});
 		this.formEl = form;
 
-		const footer = contentEl.createEl('div', { cls: 'tf-modal-buttons' });
+		const footer = contentEl.createDiv( { cls: 'tf-modal-buttons' });
 		style(footer, {
 			flex: '0 0 auto',
 			display: 'flex',
@@ -509,8 +509,8 @@ export abstract class TFEditModal extends Modal {
 			'border-top': '1px solid var(--tf-hairline, #e5e7eb)',
 			'background-color': 'var(--tf-canvas, transparent)',
 		});
-		this.statusEl = footer.createEl('span', { cls: 'tf-modal-status' });
-		const actions = footer.createEl('div', { cls: 'tf-modal-buttons-actions' });
+		this.statusEl = footer.createSpan( { cls: 'tf-modal-status' });
+		const actions = footer.createDiv( { cls: 'tf-modal-buttons-actions' });
 		style(actions, { display: 'flex', 'align-items': 'center', gap: '8px' });
 		// 刻意用原生 <button>，不走 Setting.addButton + setClass：
 		// setClass 只接受单个类名，传 'a b' 会在新版 Obsidian 抛
@@ -613,7 +613,7 @@ export abstract class TFEditModal extends Modal {
 			this.dirty = false;
 			this.close();
 		} catch (error: unknown) {
-			this.setStatus(t('modal.saveFail', { msg: error?.message ?? String(error) }), 'error');
+			this.setStatus(t('modal.saveFail', { msg: (error as Error)?.message ?? String(error) }), 'error');
 		} finally {
 			this.saving = false;
 		}

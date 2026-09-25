@@ -40,14 +40,14 @@ export class TaskFlowConfigureModal extends TFEditModal {
 
 		this.renderGlobalSettings(form);
 
-		const tabsSection = form.createEl('div', { cls: 'taskflow-config-section' });
+		const tabsSection = form.createDiv( { cls: 'taskflow-config-section' });
 		tabsSection.createEl('h3', { text: t('modal.tabsManage'), cls: 'taskflow-config-section-title' });
-		this.tabsBody = tabsSection.createEl('div', { cls: 'taskflow-config-tabs-body' });
+		this.tabsBody = tabsSection.createDiv( { cls: 'taskflow-config-tabs-body' });
 		this.refreshTabs();
 	}
 
 	private renderGlobalSettings(container: HTMLElement): void {
-		const section = container.createEl('div', { cls: 'taskflow-config-section' });
+		const section = container.createDiv( { cls: 'taskflow-config-section' });
 		section.createEl('h3', { text: t('modal.general'), cls: 'taskflow-config-section-title' });
 
 		this.addField({
@@ -59,7 +59,7 @@ export class TaskFlowConfigureModal extends TFEditModal {
 			value: this.localGlobalSettings.inboxFilePath,
 			validation: (v) => ((v as string).trim() ? null : t('modal.errPathEmpty')),
 			onChange: (v) => {
-				this.localGlobalSettings.inboxFilePath = v;
+				this.localGlobalSettings.inboxFilePath = v as string;
 				this.markDirty();
 			},
 		});
@@ -72,7 +72,7 @@ export class TaskFlowConfigureModal extends TFEditModal {
 			placeholder: t('modal.excludedExample'),
 			value: this.localGlobalSettings.excludedFolders,
 			onChange: (v) => {
-				this.localGlobalSettings.excludedFolders = v;
+				this.localGlobalSettings.excludedFolders = v as string;
 				this.markDirty();
 			},
 		});
@@ -87,17 +87,17 @@ export class TaskFlowConfigureModal extends TFEditModal {
 		if (this.localTabs.length === 0) {
 			body.createEl('p', { text: t('modal.noTabs'), cls: 'taskflow-config-empty' });
 		} else {
-			const list = body.createEl('div', { cls: 'taskflow-config-tabs-list' });
+			const list = body.createDiv( { cls: 'taskflow-config-tabs-list' });
 			this.localTabs.forEach((tab, index) => {
-				const item = list.createEl('div', { cls: 'taskflow-config-tab-item' });
+				const item = list.createDiv( { cls: 'taskflow-config-tab-item' });
 
-				const info = item.createEl('div', { cls: 'taskflow-config-tab-info' });
-				info.createEl('span', {
+				const info = item.createDiv( { cls: 'taskflow-config-tab-info' });
+				info.createSpan( {
 					text: `${localizedTabLabel(tab)} (${getTabGroup(tab, this.plugin.settings.data.groups ?? [])})`,
 					cls: 'taskflow-config-tab-label',
 				});
 
-				const actions = item.createEl('div', { cls: 'taskflow-config-tab-actions' });
+				const actions = item.createDiv( { cls: 'taskflow-config-tab-actions' });
 				actions
 					.createEl('button', { text: t('common.edit'), cls: 'taskflow-config-tab-btn' })
 					.addEventListener('click', () => this.openTabEditModal(tab, index));
@@ -214,7 +214,7 @@ export class TabEditModal extends TFEditModal {
 			value: this.tab.label,
 			validation: (v) => ((v as string).trim() ? null : t('modal.errLabelEmpty')),
 			onChange: (v) => {
-				this.tab.label = v;
+				this.tab.label = v as string;
 				this.markDirty();
 			},
 		});
@@ -229,7 +229,7 @@ export class TabEditModal extends TFEditModal {
 			rows: 5,
 			validation: (v) => ((v as string).trim() ? null : t('modal.errQueryEmpty')),
 			onChange: (v) => {
-				this.tab.query = v;
+				this.tab.query = v as string;
 				this.markDirty();
 			},
 		});
@@ -261,7 +261,7 @@ export class TabEditModal extends TFEditModal {
 			type: 'toggle',
 			value: this.tab.showSectionHeader,
 			onChange: (v) => {
-				this.tab.showSectionHeader = v;
+				this.tab.showSectionHeader = v as boolean;
 				this.markDirty();
 			},
 		});
@@ -274,11 +274,11 @@ export class TabEditModal extends TFEditModal {
 			placeholder: t('modal.orderExample'),
 			value: String(this.tab.order),
 			validation: (v) => {
-				const num = parseInt(v, 10);
+				const num = parseInt(v as string, 10);
 				return !isNaN(num) && num > 0 ? null : t('modal.errOrder');
 			},
 			onChange: (v) => {
-				const num = parseInt(v, 10);
+				const num = parseInt(v as string, 10);
 				if (!isNaN(num) && num > 0) {
 					this.tab.order = num;
 					this.markDirty();
@@ -323,7 +323,7 @@ export class GroupEditModal extends TFEditModal {
 			value: this.group.id,
 			validation: (v) => {
 				if (!(v as string).trim()) return t('modal.errIdEmpty');
-				if (!/^[a-z0-9-]+$/.test(v)) return t('modal.idRule');
+				if (!/^[a-z0-9-]+$/.test(v as string)) return t('modal.idRule');
 				return null;
 			},
 			onChange: (v) => {
@@ -341,7 +341,7 @@ export class GroupEditModal extends TFEditModal {
 			value: this.group.label,
 			validation: (v) => ((v as string).trim() ? null : t('modal.errLabelEmpty')),
 			onChange: (v) => {
-				this.group.label = v;
+				this.group.label = v as string;
 				this.markDirty();
 			},
 		});
@@ -353,7 +353,7 @@ export class GroupEditModal extends TFEditModal {
 			type: 'icon-picker',
 			value: this.group.icon,
 			onChange: (v) => {
-				this.group.icon = v || 'folder';
+				this.group.icon = (v as string) || 'folder';
 				this.markDirty();
 			},
 		});

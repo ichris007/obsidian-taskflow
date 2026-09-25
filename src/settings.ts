@@ -25,6 +25,7 @@ import { ConfirmModal } from './modals/confirm-modal';
 import { isBuiltinSlogan, localizedTabLabel, t } from './i18n';
 import type { LangSetting } from './i18n';
 import { TASKFLOW_ICON_SVG } from './brand';
+import { mountTrustedSvg } from './svg';
 
 export const TAB_GROUPS: { id: TabGroup; label: string; icon: string }[] = [
 	{ id: 'gtd', label: 'GTD', icon: 'inbox' },
@@ -73,13 +74,13 @@ interface TFRowConfig {
 }
 
 function renderTFRow(container: HTMLElement, config: TFRowConfig): HTMLElement {
-	const row = container.createEl('div', { cls: 'tf-settings-row' });
-	const main = row.createEl('div', { cls: 'tf-settings-row-main' });
-	main.createEl('div', { cls: 'tf-settings-row-title', text: config.title });
+	const row = container.createDiv( { cls: 'tf-settings-row' });
+	const main = row.createDiv( { cls: 'tf-settings-row-main' });
+	main.createDiv( { cls: 'tf-settings-row-title', text: config.title });
 	if (config.description) {
-		main.createEl('div', { cls: 'tf-settings-row-desc', text: config.description });
+		main.createDiv( { cls: 'tf-settings-row-desc', text: config.description });
 	}
-	config.fill(row.createEl('div', { cls: 'tf-settings-row-control' }));
+	config.fill(row.createDiv( { cls: 'tf-settings-row-control' }));
 	return row;
 }
 
@@ -112,15 +113,15 @@ interface TFSwitchConfig {
 function renderTFSwitch(parent: HTMLElement, config: TFSwitchConfig): HTMLElement {
 	const wrap = parent.createEl('label', { cls: 'tf-switch', attr: { title: config.label } });
 	if (config.caption) {
-		wrap.createEl('span', { cls: 'tf-switch-caption', text: config.caption });
+		wrap.createSpan( { cls: 'tf-switch-caption', text: config.caption });
 	}
 	const input = wrap.createEl('input', {
 		cls: 'tf-switch-input',
 		attr: { type: 'checkbox', 'aria-label': config.label },
 	});
 	input.checked = config.checked;
-	const track = wrap.createEl('span', { cls: 'tf-switch-track' });
-	track.createEl('span', { cls: 'tf-switch-thumb' });
+	const track = wrap.createSpan( { cls: 'tf-switch-track' });
+	track.createSpan( { cls: 'tf-switch-thumb' });
 	input.addEventListener('change', () => config.onChange(input.checked));
 	return wrap;
 }
@@ -146,14 +147,14 @@ interface TFFileSuggestConfig {
 const SUGGEST_MAX = 8;
 
 function renderTFFileSuggestRow(control: HTMLElement, config: TFFileSuggestConfig): void {
-	const wrap = control.createEl('div', { cls: 'tf-suggest' });
+	const wrap = control.createDiv( { cls: 'tf-suggest' });
 	const input = wrap.createEl('input', {
 		cls: 'tf-field-input',
 		attr: { type: 'text', placeholder: config.placeholder ?? '' },
 	});
 	input.value = config.value;
 
-	const list = wrap.createEl('div', { cls: 'tf-suggest-list' });
+	const list = wrap.createDiv( { cls: 'tf-suggest-list' });
 
 	let items: TFile[] = [];
 	let itemEls: HTMLElement[] = [];
@@ -188,19 +189,19 @@ function renderTFFileSuggestRow(control: HTMLElement, config: TFFileSuggestConfi
 		list.setCssProps({ display: 'block' });
 
 		if (items.length === 0) {
-			list.createEl('div', { cls: 'tf-suggest-empty', text: t('suggest.noMatch') });
+			list.createDiv( { cls: 'tf-suggest-empty', text: t('suggest.noMatch') });
 			return;
 		}
 
 		for (let i = 0; i < items.length; i++) {
 			const file = items[i];
 			if (!file) continue;
-			const item = list.createEl('div', { cls: 'tf-suggest-item' });
-			item.createEl('div', {
+			const item = list.createDiv( { cls: 'tf-suggest-item' });
+			item.createDiv( {
 				cls: 'tf-suggest-item-name',
 				text: file.basename ?? file.name.replace(/\.md$/i, ''),
 			});
-			item.createEl('div', { cls: 'tf-suggest-item-path', text: file.path });
+			item.createDiv( { cls: 'tf-suggest-item-path', text: file.path });
 			// 用 mousedown 而不是 click：mousedown 早于 input 的 blur，
 			// 且 preventDefault 能保住焦点，否则列表会先被 blur 关掉、点击落空。
 			item.addEventListener('mousedown', (e) => {
@@ -241,7 +242,7 @@ function renderTFFileSuggestRow(control: HTMLElement, config: TFFileSuggestConfi
 
 /** 卡片底部的添加行 */
 function renderTFAddRow(container: HTMLElement, label: string, onClick: () => void): void {
-	const row = container.createEl('div', { cls: 'tf-settings-row is-add' });
+	const row = container.createDiv( { cls: 'tf-settings-row is-add' });
 	const btn = row.createEl('button', { cls: 'tf-settings-add-btn', attr: { type: 'button' } });
 	setIcon(btn.createSpan({ cls: 'tf-settings-add-icon' }), 'plus');
 	btn.createSpan({ cls: 'tf-settings-add-label', text: label });
@@ -250,7 +251,7 @@ function renderTFAddRow(container: HTMLElement, label: string, onClick: () => vo
 
 /** 空状态：一行灰字，不抢戏 */
 function renderTFEmptyRow(container: HTMLElement, text: string): void {
-	container.createEl('div', { cls: 'tf-settings-empty', text });
+	container.createDiv( { cls: 'tf-settings-empty', text });
 }
 
 /** 显示 Toast 通知 */
@@ -259,13 +260,13 @@ function showTFToast(message: string, type: 'success' | 'error' | 'info' = 'info
 	const existing = document.querySelector('.tf-toast');
 	existing?.remove();
 
-	const toast = document.createElement('div');
+	const toast = createDiv();
 	toast.className = `tf-toast tf-toast-${type}`;
 
-	const icon = toast.createEl('span', { cls: 'tf-toast-icon' });
+	const icon = toast.createSpan( { cls: 'tf-toast-icon' });
 	icon.textContent = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
 	// message 来自运行期（可能是错误文案），用 textContent 注入，绝不走 innerHTML
-	toast.createEl('span', { cls: 'tf-toast-content', text: message });
+	toast.createSpan( { cls: 'tf-toast-content', text: message });
 	const closeBtn = toast.createEl('button', {
 		cls: 'tf-toast-close',
 		attr: { type: 'button', 'aria-label': t('common.close') },
@@ -588,7 +589,7 @@ export function migrateSettings(loaded: Partial<TaskViewsSettings>): TaskViewsSe
 	}
 
 	// Old format: flat structure
-	const anyLoaded = loaded as unknown;
+	const anyLoaded = loaded as Record<string, unknown>;
 	let tabs = anyLoaded.tabs as TabConfig[] | undefined;
 	let boards = anyLoaded.boards as Board[] | undefined;
 	let globalTabs = anyLoaded.globalTabs as TabConfig[] | undefined;
@@ -667,7 +668,7 @@ export class SettingsManager {
 
 		this.renderSectionNav(contentEl);
 
-		const body = contentEl.createEl('div', { cls: 'tf-settings-body' });
+		const body = contentEl.createDiv( { cls: 'tf-settings-body' });
 		switch (this.activeSection) {
 			case 'groups':
 				this.renderGroupsSection(body);
@@ -687,7 +688,7 @@ export class SettingsManager {
 
 	/** 顶部图标标签栏：未激活只留图标，激活项才展开文字 + 指示条 */
 	private renderSectionNav(contentEl: HTMLElement): void {
-		const nav = contentEl.createEl('div', {
+		const nav = contentEl.createDiv( {
 			cls: 'tf-settings-nav',
 			attr: { role: 'tablist', 'aria-label': this.heading },
 		});
@@ -727,9 +728,9 @@ export class SettingsManager {
 		   放在最上面：它决定整个面板（乃至视图）用什么语言显示，
 		   放下面会被一堆看不懂的文案挡住，等于没有。 */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('settings.lang.title') });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('settings.lang.title') });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('settings.lang.title'),
@@ -740,9 +741,9 @@ export class SettingsManager {
 
 		/* ── 卡片 1：插件默认打开位置 ── */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('settings.open.title') });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('settings.open.title') });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('settings.open.subtitle'),
@@ -755,9 +756,9 @@ export class SettingsManager {
 
 		/* ── 卡片 2：Inbox 文件路径 ── */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('settings.inbox.title') });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('settings.inbox.title') });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('settings.inbox.title'),
@@ -781,9 +782,9 @@ export class SettingsManager {
 
 		/* ── 卡片 3：显示封面图 + 封面图片 ── */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('settings.cover.title') });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('settings.cover.title') });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('settings.cover.show'),
@@ -805,7 +806,7 @@ export class SettingsManager {
 				description: t('settings.cover.pickDesc', { file: COVER_FILE, dir: COVER_DIR }),
 				fill: (control) => {
 					const file = resolveCoverFile(this.plugin.app, data.coverImagePath);
-					control.createEl('span', {
+					control.createSpan( {
 						cls: 'tf-settings-row-desc',
 						text: file ? file.name : t('settings.cover.none'),
 					});
@@ -826,9 +827,9 @@ export class SettingsManager {
 
 		/* ── 卡片 4：工作台名 / slogan（含头部文字总开关）── */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('settings.head.title') });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('settings.head.title') });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('settings.head.textTitle'),
@@ -898,12 +899,12 @@ export class SettingsManager {
 		/* ── 卡片 5：面板模块（今日概览 / 重要提醒）──
 		   两个模块都在快捷输入框上方、并排展示；关掉其一另一个占满整行，都关则整块不渲染。 */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', {
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( {
 				cls: 'tf-settings-card-caption',
 				text: t('settings.panel.title'),
 			});
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('settings.panel.today'),
@@ -959,9 +960,9 @@ export class SettingsManager {
 
 		/* ── 卡片 6：底部统计栏 ── */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('settings.stats.title') });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('settings.stats.title') });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('settings.stats.categories'),
@@ -983,11 +984,11 @@ export class SettingsManager {
 
 		/* ── 卡片 7：提醒 ── */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('settings.noticeTitle') });
-			const note = card.createEl('div', { cls: 'tf-settings-note' });
-			setIcon(note.createEl('span', { cls: 'tf-settings-note-icon' }), 'info');
-			note.createEl('span', {
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('settings.noticeTitle') });
+			const note = card.createDiv( { cls: 'tf-settings-note' });
+			setIcon(note.createSpan( { cls: 'tf-settings-note-icon' }), 'info');
+			note.createSpan( {
 				cls: 'tf-settings-note-text',
 				text: t('settings.notice'),
 			});
@@ -998,7 +999,7 @@ export class SettingsManager {
 	/** 界面语言：跟随系统 / 中文 / English 三选一，切换后立刻重建面板与所有视图 */
 	private renderLanguageSegment(control: HTMLElement): void {
 		const current: LangSetting = this.plugin.settings.language ?? 'auto';
-		const seg = control.createEl('div', {
+		const seg = control.createDiv( {
 			cls: 'tf-segmented tf-segmented-wide',
 			attr: { role: 'group', 'aria-label': t('settings.lang.title') },
 		});
@@ -1027,7 +1028,7 @@ export class SettingsManager {
 
 	private renderOpenLocationSegment(control: HTMLElement): void {
 		const data = this.plugin.settings.data;
-		const seg = control.createEl('div', {
+		const seg = control.createDiv( {
 			cls: 'tf-segmented',
 			attr: { role: 'group', 'aria-label': t('settings.open.title') },
 		});
@@ -1057,32 +1058,29 @@ export class SettingsManager {
 	private renderAboutSection(body: HTMLElement): void {
 		/* 卡片 1：TaskFlow 简介 */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('about.introTitle') });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('about.introTitle') });
 
-			const hero = card.createEl('div', { cls: 'tf-about-hero' });
-			// 与 Ribbon 用同一个品牌图标，界面前后呼应
-		try {
-			// 受信任的品牌 SVG 常量（仓库内写死，非用户输入），注入到关于页图标。
-			// eslint-disable-next-line @microsoft/sdl/no-inner-html, no-unsanitized/property
-			hero.createEl('div', { cls: 'tf-about-mark' }).innerHTML = TASKFLOW_ICON_SVG;
-		} catch {
-				setIcon(hero.createEl('div', { cls: 'tf-about-mark' }), 'layout-dashboard');
-			}
-			const heroText = hero.createEl('div', { cls: 'tf-about-hero-text' });
-			heroText.createEl('div', { cls: 'tf-about-title', text: 'TaskFlow' });
-			heroText.createEl('div', { cls: 'tf-about-subtitle', text: t('default.slogan') });
+		const hero = card.createDiv( { cls: 'tf-about-hero' });
+		// 与 Ribbon 用同一个品牌图标，界面前后呼应；挂载失败回落 layout-dashboard
+		const mark = hero.createDiv( { cls: 'tf-about-mark' });
+		if (!mountTrustedSvg(mark, TASKFLOW_ICON_SVG)) {
+			setIcon(mark, 'layout-dashboard');
+		}
+			const heroText = hero.createDiv( { cls: 'tf-about-hero-text' });
+			heroText.createDiv( { cls: 'tf-about-title', text: 'TaskFlow' });
+			heroText.createDiv( { cls: 'tf-about-subtitle', text: t('default.slogan') });
 
-		card.createEl('div', { cls: 'tf-about-text', text: t('about.intro1') });
-		card.createEl('div', { cls: 'tf-about-text', text: t('about.intro2') });
-		card.createEl('div', { cls: 'tf-about-text', text: t('about.intro3') });
+		card.createDiv( { cls: 'tf-about-text', text: t('about.intro1') });
+		card.createDiv( { cls: 'tf-about-text', text: t('about.intro2') });
+		card.createDiv( { cls: 'tf-about-text', text: t('about.intro3') });
 		}
 
 		/* 卡片 2：Github Repository */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: 'Github Repository' });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: 'Github Repository' });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			renderTFRow(rows, {
 				title: t('about.githubTitle'),
@@ -1093,18 +1091,18 @@ export class SettingsManager {
 
 		/* 卡片 3：作者 */
 		{
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
-			card.createEl('div', { cls: 'tf-settings-card-caption', text: t('about.authorTitle') });
-			const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
+			card.createDiv( { cls: 'tf-settings-card-caption', text: t('about.authorTitle') });
+			const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 			for (const line of [
 				t('about.author1'),
 				t('about.author2'),
 				t('about.author3'),
 			]) {
-				const item = rows.createEl('div', { cls: 'tf-about-bullet' });
-				item.createEl('span', { cls: 'tf-about-bullet-dot', text: '•' });
-				item.createEl('span', { cls: 'tf-about-bullet-text', text: line });
+				const item = rows.createDiv( { cls: 'tf-about-bullet' });
+				item.createSpan( { cls: 'tf-about-bullet-dot', text: '•' });
+				item.createSpan( { cls: 'tf-about-bullet-text', text: line });
 			}
 
 			renderTFRow(rows, {
@@ -1168,8 +1166,8 @@ export class SettingsManager {
 	/** 分组管理：每行一个分组 */
 	private renderGroupsSection(body: HTMLElement): void {
 		const data = this.plugin.settings.data;
-		const card = body.createEl('div', { cls: 'tf-settings-card' });
-		const rows = card.createEl('div', { cls: 'tf-settings-rows' });
+		const card = body.createDiv( { cls: 'tf-settings-card' });
+		const rows = card.createDiv( { cls: 'tf-settings-rows' });
 
 		for (const group of data.groups) {
 			const isBuiltIn = ['gtd', 'time', 'tag'].includes(group.id);
@@ -1204,26 +1202,26 @@ export class SettingsManager {
 		const data = this.plugin.settings.data;
 
 		for (const group of data.groups) {
-			const card = body.createEl('div', { cls: 'tf-settings-card' });
+			const card = body.createDiv( { cls: 'tf-settings-card' });
 
 			const collapsed = this.isGroupCollapsed(group.id);
 			const header = card.createEl('button', {
 				cls: 'tf-settings-group-header',
 				attr: { type: 'button', 'aria-expanded': collapsed ? 'false' : 'true' },
 			});
-			const chevron = header.createEl('span', { cls: 'tf-settings-group-chevron' });
+			const chevron = header.createSpan( { cls: 'tf-settings-group-chevron' });
 			setIcon(chevron, collapsed ? 'chevron-right' : 'chevron-down');
-			header.createEl('span', { cls: 'tf-settings-group-title', text: group.label });
+			header.createSpan( { cls: 'tf-settings-group-title', text: group.label });
 			// 折叠时也看得见该组有几个 tab，不用逐个展开去找
 			const groupTabCount = data.globalTabs.filter(
 				(tab) => getTabGroup(tab, data.groups) === group.id,
 			).length;
-			header.createEl('span', {
+			header.createSpan( {
 				cls: 'tf-settings-group-count',
 				text: t('settings.group.tabCount', { n: groupTabCount }),
 			});
 
-			const content = card.createEl('div', { cls: 'tf-settings-group-content' });
+			const content = card.createDiv( { cls: 'tf-settings-group-content' });
 			content.toggleClass('is-collapsed', collapsed);
 
 			header.addEventListener('click', () => {
@@ -1234,7 +1232,7 @@ export class SettingsManager {
 				header.setAttribute('aria-expanded', next ? 'false' : 'true');
 			});
 
-			const rows = content.createEl('div', { cls: 'tf-settings-rows' });
+			const rows = content.createDiv( { cls: 'tf-settings-rows' });
 
 			const groupTabs = data.globalTabs
 				.filter((tab) => getTabGroup(tab, data.groups) === group.id)

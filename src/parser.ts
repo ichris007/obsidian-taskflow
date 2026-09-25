@@ -77,7 +77,7 @@ export function parseTaskLine(raw: string, file: TFile, lineIndex: number): Task
 	const recurIdx = body.indexOf('🔁');
 	if (recurIdx !== -1) {
 		const afterRecur = body.slice(recurIdx + '🔁'.length).trim();
-		const nextEmoji = afterRecur.search(/[⏳📅🛫✅➕⏫🔼🔽⬇️🆔⛔]/vu);
+		const nextEmoji = afterRecur.search(/[⏳📅🛫✅➕⏫🔼🔽⬇🆔⛔]/gu);
 		task.recurrence = nextEmoji === -1 ? afterRecur : afterRecur.slice(0, nextEmoji).trim();
 	}
 
@@ -95,9 +95,9 @@ export function parseTaskLine(raw: string, file: TFile, lineIndex: number): Task
 
 	// Strip all emoji metadata from description
 	task.description = body
-		.replace(/[⏳📅🛫✅➕]\s*\d{4}-\d{2}-\d{2}/gvu, '')
-		.replace(/🔁[^⏳📅🛫✅➕⏫🔼🔽⬇️🆔⛔]*/gvu, '')
-		.replace(/[⏫🔼🔽⬇️🆔⛔]\s*\S*/gvu, '')
+		.replace(/[⏳📅🛫✅➕]\s*\d{4}-\d{2}-\d{2}/gu, '')
+		.replace(/🔁[^⏳📅🛫✅➕⏫🔼🔽⬇🆔⛔]*/gu, '')
+		.replace(/[⏫🔼🔽⬇🆔⛔]\s*\S*/gu, '')
 		.replace(/\s{2,}/g, ' ')
 		.trim();
 

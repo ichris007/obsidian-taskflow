@@ -1,18 +1,16 @@
 # TaskFlow
 
-[中文](./README.md) | [English](./README_EN.md)
+[English](./README.md) | [中文](./README_ZH.md)
 
-> **你不缺任务。你缺的是下一步。**
->
-> *You don't need more tasks. You need the next step.*
+> **You don't need more tasks. You need the next step.**
 
-**TaskFlow** 是一个建立在  [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks)  之上的轻量**行动工作台**。
+**TaskFlow** is a lightweight **Action Workspace** built on top of [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks).
 
-它不改变你任何既有的任务记录语法与查询逻辑，而是在任务列表之上，构建了一层动态的 **行动空间（Action Space）**。
+It doesn't change the way you write or query tasks. Instead, it adds a dynamic **Action Space** on top of your existing task lists.
 
-它重新组织你的任务，通过**时间**、**GTD** 和**场景**三个维度降低选择成本，让行动更快发生。
+TaskFlow reorganizes your tasks across three dimensions — **Time**, **GTD**, and **Context** — to reduce decision-making friction and help you take action faster.
 
-### 插件功能演示
+### Features and Demonstration
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/4787af2c-767d-4d2e-83e2-f6df92633920"
@@ -22,227 +20,264 @@
          muted>
     您的浏览器不支持视频播放
   </video>
-  <p><em>TaskFlow功能演示</em></p>
+  <p><em>Features and Demonstration of TaskFlow</em></p>
 </div>
 
 ---
-## 01｜为什么做TaskFlow
 
-在 Obsidian 里做任务管理，绕不开两个已有的选择：**Tasks** 和 **TaskNotes**。它们各自都很强，但走的是不同的路。
+## 01｜Why TaskFlow
 
-注：Tasks和TaskNotes都是非常优秀的插件，这里的对比，只是基于个人使用习惯。仅代表个人观点！
+When it comes to task management in Obsidian, there are two powerful options worth mentioning: **Tasks** and **TaskNotes**. Both are excellent plugins, but they take very different approaches.
 
-- Tasks 已经是一套非常强大的任务系统。
-	- 它拥有成熟的任务语法、查询能力和渲染机制，性能也足够优秀，我们没必要重复造轮子。
-	- 但 Tasks 并不是一个**强大的视觉前端**。它的任务展示和汇总界面是能用，但不够丰富，也不可以灵活配置。
+> **Note:** Tasks and TaskNotes are both excellent plugins. The comparison below is based entirely on my personal workflow and preferences.
 
-- TaskNotes 在前端展示方面确实功能强大。
-	- 但它有一个前提：**每一个任务都需要建立一篇独立的笔记。** 这种方式对于需要大量任务上下文、笔记和属性管理的场景非常合适。
-	- 但为一句话任务建一篇笔记，多少有点太重了。
+### Tasks
 
-我喜欢**把任务作为列表，直接写在笔记里。** 但我需要一个强大、灵活的前端。
+- Tasks is already a powerful task management system.
+    
+    - It provides mature task syntax, powerful queries, and reliable rendering with excellent performance. There is no reason to reinvent the wheel.
+        
+    - However, Tasks is not designed as a **rich visual frontend**. Its task views and aggregation interfaces are functional, but relatively limited and not highly configurable.
+        
 
-这正是我开发 TaskFlow 的初衷：
+### TaskNotes
 
-使用 Tasks 强大的任务引擎，TaskFlow作为简洁、灵活、适合行动的前端界面。
+- TaskNotes offers a powerful frontend experience.
+    
+    - But it comes with a fundamental assumption: **each task is represented by its own dedicated note**. This works extremely well when individual tasks need rich context, notes, properties, and supporting information.
+        
+    - But for a simple one-line task, creating an entire note can feel unnecessarily heavy.
+        
 
+I prefer to **keep tasks as simple list items directly inside my notes**.
 
-Tasks × TaskNotes × TaskFlow
+What I wanted was a powerful and flexible frontend without making the underlying task model heavier.
 
-|               | **Tasks**  | **TaskNotes** | **TaskFlow**           |
-| ------------- | ---------- | ------------- | ---------------------- |
-| **核心定位**      | 强大的任务引擎    | 任务 + 笔记工作台    | **任务行动工作台**            |
-| **核心优势**      | 任务语法、查询、性能 | 强大的任务前端与笔记能力  | **轻量任务 + 强大前端展示**      |
-| **任务顆粒度**     | 一句话到复杂任务都行 | 适合有独立笔记价值的任务  | 一句话到复杂任务都行             |
-| **任务语法**      | **原生**     | 有自己的体系 / 集成方式 | **直接使用 Tasks**         |
-| **查询能力**      | **强大**     | 强大            | **继承 Tasks 能力**        |
-| **性能基础**      | **成熟、优秀**  | 功能更丰富         | **建立在 Tasks 之上**       |
-| **任务展示**      | 相对基础       | **强大、丰富**     | **重新设计、强调简洁和效率**       |
-| **任务汇总**      | 基础         | **强大**        | **强化汇总与场景展示**          |
-| **视图体验**      | 偏任务查询      | 偏任务笔记         | **偏行动选择**              |
-| **使用方式**      | 管理任务       | 管理任务及其内容      | **找到当前该做什么**           |
-| **学习 / 迁移成本** | 原有习惯       | 需要适应任务笔记模型    | **几乎不改变原有习惯**          |
-| **适合的人**      | 喜欢纯任务系统的人  | 希望任务与笔记深度结合的人 | **喜欢任务列表，又希望拥有更好前端的人** |
+That is the reason I built **TaskFlow**:
 
----
+> **Use the powerful task engine of Tasks, and build a simpler, more flexible frontend designed for action.**
 
-## 02｜TaskFlow解决什么
+### Tasks × TaskNotes × TaskFlow
 
-### TaskFlow 解决的不是「任务太多」，而是「选择太难」。
-
-**行动之前的选择，本身就成了一种负担。**
-
-传统任务管理主要解决：
-
-> **把事情记下来，避免遗忘。**
-
-但真正到了行动时，我们还需要解决另一个问题：
-
-> **从这么多事情里，找到此刻值得做的那一件。**
-
-这是一种 **行动决策成本**。任务越多、场景越复杂、上下文越频繁变化，这种成本就越高。
-
-TaskFlow 希望减少的正是这一步。
-
-让你从：
-
-> **「我该做什么？」**
-
-更快进入：
-
-> **「那就做这个。」**
+|                               | **Tasks**                            | **TaskNotes**                                            | **TaskFlow**                                              |
+| ----------------------------- | ------------------------------------ | -------------------------------------------------------- | --------------------------------------------------------- |
+| **Core role**                 | Powerful task engine                 | Task + notes workspace                                   | **Action-oriented task workspace**                        |
+| **Key strength**              | Task syntax, queries, performance    | Powerful task frontend and note integration              | **Lightweight tasks + powerful frontend**                 |
+| **Task granularity**          | From one-line tasks to complex tasks | Best suited to tasks that deserve their own notes        | **From one-line tasks to complex tasks**                  |
+| **Task syntax**               | **Native**                           | Its own system / integrations                            | **Uses Tasks directly**                                   |
+| **Query capabilities**        | **Powerful**                         | Powerful                                                 | **Built on Tasks' query capabilities**                    |
+| **Performance foundation**    | **Mature and reliable**              | More feature-rich                                        | **Built on top of Tasks**                                 |
+| **Task presentation**         | Relatively basic                     | **Powerful and rich**                                    | **Redesigned for simplicity and efficiency**              |
+| **Task aggregation**          | Basic                                | **Powerful**                                             | **Enhanced aggregation and contextual views**             |
+| **View philosophy**           | Task querying                        | Task + note management                                   | **Action selection**                                      |
+| **Primary use**               | Manage tasks                         | Manage tasks and their content                           | **Find what to do next**                                  |
+| **Learning / migration cost** | Existing workflow                    | Requires adapting to a task-as-note model                | **Minimal change to your existing workflow**              |
+| **Best for**                  | People who prefer a pure task system | People who want deep integration between tasks and notes | **People who like task lists but want a better frontend** |
 
 ---
 
-## 03｜TaskFlow是什么
+## 02｜What Problem Does TaskFlow Solve?
 
-### TaskFlow 是一个从「任务」走向「行动」的工作台。
+### TaskFlow isn't trying to solve "too many tasks." It's trying to solve "too many choices."
 
-它不是让你建立一套新的任务系统，TaskFlow 要做的是：
+**The decision-making that happens before taking action can become a burden in itself.**
 
-> **让你换一个角度重新审视这些任务。**
+Traditional task management primarily solves one problem:
 
-从 **管理任务** 走向 **选择行动**。
+> **Capture things so you don't forget them.**
 
-| 维度 | 传统任务管理（任务空间） | TaskFlow（行动空间） |
-| --- | --- | --- |
-| **核心目标** | **管理事情**（怕忘了） | **推动行动**（不知道先做啥） |
-| **关注焦点** | 看见所有任务（Task） | 聚焦当前行动（Action） |
-| **大脑角色** | **思考引擎**（我有什么要做？） | **执行引擎**（我现在做什么？） |
-| **操作过程** | 找任务 → 判断 → 选择 | 场景 → 筛选 → 行动 |
-| **最终结果** | 认知过载，积累焦虑 | **消灭阻力，即刻开始** |
+But when it is time to actually act, there is another problem to solve:
+
+> **Out of all these tasks, which one is actually worth doing right now?**
+
+This creates **action decision cost**.
+
+The more tasks you have, the more complex your context becomes, and the more frequently that context changes, the higher this cost becomes.
+
+TaskFlow is designed to reduce that friction.
+
+Instead of getting stuck at:
+
+> **"What should I do?"**
+
+you can move more quickly to:
+
+> **"I'll do this."**
 
 ---
 
-## 04｜怎么解决
+## 03｜What Is TaskFlow?
 
-TaskFlow 利用任务本身已经存在的信息，帮助你 **缩小选择范围**，把任务放回不同的行动上下文中：
+### TaskFlow is a workspace that moves you from **tasks to action**.
 
-- **GTD → 下一步该做什么？**  
-  帮助你从任务列表中找到可以继续推进的下一步。
+It doesn't ask you to build a new task management system.
 
-- **Time → 今天该做什么？**  
-  帮助你从时间维度找到今天真正需要面对的事情。
+Instead, TaskFlow gives you:
 
-- **Tag → 在这个场景下该做什么？**  
-  帮助你根据当前的工作环境、工具或场景，找到此刻适合做的事情。
+> **A different way to look at the tasks you already have.**
 
-于是：
+Moving from **managing tasks** to **choosing actions**.
 
-> **任务不再只是一个等待完成的列表项，而成为一个可以根据上下文被重新发现的行动。**
+|                        | **Traditional Task Management (Task Space)**  | **TaskFlow (Action Space)**                    |
+| ---------------------- | --------------------------------------------- | ---------------------------------------------- |
+| **Core goal**          | **Manage things** — "so I don't forget"       | **Drive action** — "so I know what to do next" |
+| **Focus**              | See all tasks                                 | **Focus on the current action**                |
+| **Role of your brain** | **Thinking engine** — "What do I need to do?" | **Execution engine** — "What do I do now?"     |
+| **Process**            | Find → Evaluate → Choose                      | **Context → Filter → Act**                     |
+| **Outcome**            | Cognitive overload and accumulated stress     | **Remove friction and start immediately**      |
 
-整个过程从：
+---
 
-**任务列表 → 浏览 → 判断 → 比较 → 选择**
+## 04｜How Does It Work?
 
-变成：
+TaskFlow uses information that already exists in your tasks to **narrow down your choices**, placing tasks into different action contexts:
 
-**当前上下文 → 缩小范围 → 找到行动 → 开始**
+- **GTD → What should I do next?**
+    
+    Helps you find the next actionable step from your task list.
+    
+- **Time → What should I do today?**
+    
+    Helps you identify what actually needs your attention today.
+    
+- **Context → What can I do in this situation?**
+    
+    Helps you find tasks that fit your current environment, tools, or working context.
+    
 
-也就是：
+As a result:
+
+> **A task is no longer just an item waiting to be completed. It becomes an action that can be rediscovered based on your current context.**
+
+The process changes from:
+
+**Task List → Browse → Evaluate → Compare → Choose**
+
+to:
+
+**Current Context → Narrow the Choices → Find an Action → Start**
+
+In other words:
 
 > **Context → Choice → Action**
 
 ---
 
-## 05｜你得到什么
+## 05｜What Do You Get?
 
-TaskFlow 最终想带来的改变，可以浓缩成一句话：
+TaskFlow ultimately aims to create one simple change:
 
-> **不是帮你管理更多任务，而是帮你更快开始下一件事。**
+> **It doesn't help you manage more tasks. It helps you start the next one faster.**
 
-当你使用 TaskFlow 时，你收获的不只是一个好看的面板，而是整套工作流的质变：
+With TaskFlow, you don't just get a better-looking task panel. You get a different way of working with your tasks:
 
-- **零决策瘫痪，即刻启动**：打开 Obsidian 的瞬间，不再面对几十条待办发呆，一眼锁定当前最值得做的事。
-- **零迁移与学习成本**：完全兼容现有的 Tasks 语法与数据，不改变记录习惯，即装即用。
-- **意志力解脱，专注执行**：把「挑选任务」的消耗降至最低，将宝贵的注意力全额注入到真正的「行动」中。
-- **自然进入心流（Flow）**：用结构化的 TaskFlow 消除行动阻力，让任务顺畅流转，让大脑轻松滑入专注的心流状态。
+- **No decision paralysis — just start:** Open Obsidian and stop staring at dozens of pending tasks. Quickly identify what is most relevant right now and get started.
+    
+- **Zero migration or learning cost:** Fully compatible with your existing Tasks syntax and data. Keep your current workflow and start using TaskFlow immediately.
+    
+- **Less willpower, more focus:** Minimize the mental effort spent choosing what to work on, and put your attention where it matters — into actually doing the work.
+    
+- **A smoother path into Flow:** By removing friction from the beginning of an action, TaskFlow helps your tasks move naturally and makes it easier for your mind to settle into a focused state.
+    
+
+---
+
+## 06｜Installation
+
+> **You can install TaskFlow via BRAT or manually.** If TaskFlow is listed in the Obsidian Community Plugins directory, you can also install it directly from there — just search for "TaskFlow" in **Settings → Community plugins → Browse**.
 
 ---
 
-## 06｜安装指南
+### Method 1: Install via BRAT (Recommended)
 
-> **TaskFlow 目前尚未上架 Obsidian 社区插件中心**，你需要通过以下两种方式之一手动安装。
+[BRAT](https://github.com/TfTHacker/obsidian42-brat) (**Beta Reviewers Auto-update Tool**) is a popular Obsidian community plugin for installing and automatically updating plugins that are not yet available in the Community Plugins directory.
 
----
-### 方式一：通过 BRAT 插件安装（推荐）
+Once installed through BRAT, TaskFlow can **automatically follow updates from its GitHub repository**, so you don't need to download new releases manually.
 
-[BRAT](https://github.com/TfTHacker/obsidian42-brat)（Beta Reviewers Auto-update Tool）是 Obsidian 社区中用于安装和自动更新未上架插件的常用工具。使用 BRAT 安装后，插件可以**自动跟随 GitHub 仓库更新**，无需每次手动下载。
+### Steps
 
-### 步骤
-
-1. **安装 BRAT 插件**
-    - 打开 Obsidian → 设置 → 第三方插件 → 浏览
-    - 搜索 `BRAT`，找到 **Obsidian42 - BRAT**，点击安装并启用
-
-2. **通过 BRAT 添加 TaskFlow**
-    - 打开 BRAT 插件
-    - 点击 **Add Beta Plugin**
-    - 在输入框中粘贴仓库地址：
-        `https://github.com/ichris007/obsidian-taskflow`
-    - 点击 **Add Plugin**，BRAT 会自动下载并安装最新版本
+1. **Install BRAT**
+    
+    - Open Obsidian → Settings → Community plugins → Browse
+    - Search for `BRAT`, find **Obsidian42 - BRAT**, then install and enable it.
         
-3. **启用插件**
-    - 回到 设置 → 第三方插件 → 已安装插件
-    - 找到 **TaskFlow**，打开开关即可使用
+2. **Add TaskFlow through BRAT**
+    
+    - Open the BRAT plugin.
+    - Click **Add Beta Plugin**.
+    - Paste the repository URL:
+        `https://github.com/ichris007/taskflow`
+    - Click **Add Plugin**. BRAT will automatically download and install the latest version.
+        
+3. **Enable TaskFlow**
+    
+    - Go to Settings → Community plugins → Installed plugins.
+    - Find **TaskFlow** and enable it.
 
-> 💡 之后每当仓库有新版本发布，BRAT 会自动提示或帮你更新，无需手动操作。
+> 💡 Once installed, BRAT can notify you about new releases and help keep TaskFlow up to date without requiring manual downloads.
 
 ---
 
-### 方式二：手动安装
+### Method 2: Manual Installation
 
-如果你不想使用 BRAT，也可以直接从 GitHub 下载文件手动放入插件目录。
+If you prefer not to use BRAT, you can download the plugin files directly from GitHub and install them manually.
 
-### 步骤
+### Steps
 
-1. **下载插件文件**
-    - 打开仓库 Releases 页面：  
-        [https://github.com/ichris007/obsidian-taskflow/releases](https://github.com/ichris007/obsidian-taskflow/releases)
-    - 下载最新版本中的以下三个文件：
+1. **Download the plugin files**
+    
+    - Open the [Releases](https://github.com/ichris007/taskflow/releases) page.
+    - Download the following three files from the latest release:
+        
         - `main.js`
         - `manifest.json`
         - `styles.css`
+            
+    > If there is no release available yet, you can also download these three files directly from the repository root using **Code → Download ZIP**, or open each file individually and save it via **Raw**.
     
-    > 如果 Releases 页面暂无发布版本，也可以在仓库根目录中直接下载这三个文件（通过 Code → Download ZIP，或逐个文件打开后点 Raw 保存）。
+2. **Find your Obsidian plugin directory**
     
-1. **找到你的 Obsidian 插件目录**
-    - 打开你的 Obsidian 库（Vault）文件夹
-    - 进入 `.obsidian/plugins/` 目录  
-        （如果看不到 `.obsidian` 文件夹，需要在系统设置中开启「显示隐藏文件」）
+    - Open your Obsidian vault folder.
+    - Go to `.obsidian/plugins/`.
+    - If you cannot see the `.obsidian` folder, enable hidden files in your operating system.
         
-2. **创建插件文件夹并放入文件**
-    - 在 `plugins` 目录下新建一个文件夹，命名为：`taskflow`
-    - 将下载的 `main.js`、`manifest.json`、`styles.css` 放入该文件夹
-    - 最终结构应为：
-        .obsidian/plugins/taskflow/
-        ├── main.js
-        ├── manifest.json
-        └── styles.css
-        
-3. **启用插件**
-    - 重启 Obsidian（或按 `Ctrl/Cmd + R` 重新加载）
-    - 打开 设置 → 第三方插件 → 已安装插件
-    - 找到 **TaskFlow**，打开开关
+3. **Create the plugin folder and add the files**
+    
+    - Create a new folder named `taskflow` inside `plugins`.
+    - Put `main.js`, `manifest.json`, and `styles.css` into this folder.
+    
+    The final structure should look like:
+    
+    `.obsidian/plugins/taskflow/`  
+    ├── `main.js`  
+    ├── `manifest.json`  
+    └── `styles.css`
+    
+4. **Enable TaskFlow**
+    
+    - Restart Obsidian, or press `Ctrl/Cmd + R` to reload it.
+    - Go to Settings → Community plugins → Installed plugins.
+    - Find **TaskFlow** and enable it.
 
 ---
 
-## 关于作者
+## About the Author
 
-**猎人科叔**
+### **猎人科叔** **(Uncle Ke)**
 
-- 科技行业人才专家，15 年老猎头，互联网 / AI / 机器人，面试超万人。
-- 生产力系统专家，专注 16 年+，打造高效工作和成长体系。
-- 自媒体全网同名：**猎人科叔**。
+- Technology talent specialist and veteran headhunter with 15 years of experience, focused on Internet, AI, and robotics talent. Conducted 10,000+ interviews.
+- Productivity systems practitioner for 16+ years, focused on building efficient systems for work, learning, and personal growth.
+- Creator under the name **"猎人科叔"** across social platforms.
 
-更多关于科叔的 Obsidian 生产力与知识管理实践（示例库、插件、脚本、经验等），见 <https://lifein.vip>。
+For more of Chris's work on Obsidian productivity and knowledge management — including example vaults, plugins, scripts, and practical workflows — visit [Lifein](https://lifein.vip/).
 
 ---
 
 ## 📄 License
 
-请参见仓库中的 LICENSE 文件。
+See the `LICENSE` file in the repository.
 
 ---
 
-> **TaskFlow — 从任务管理，到行动。**
+> **TaskFlow — From Task Management to Action.**
+
