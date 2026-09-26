@@ -1,17 +1,18 @@
 # TaskFlow — Task Management & Action Workspace for Obsidian
 
-<table  border="0" cellspacing="0" cellpadding="0">
-<tr>
+<table  border="0" cellspacing="0" cellpadding="0">  
+<tr>  
 <td valign="top" width="60%">
-
 
 [English](./README.md) | [中文](./README_ZH.md)
 
-<br>
+  
+
 
 > **You don't need more tasks. You need the next step.**
 
-<br>
+  
+
 
 **TaskFlow** is a lightweight **Action Workspace** built on top of [Obsidian Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks).
 
@@ -19,28 +20,26 @@ It doesn't change the way you write or query tasks. Instead, it adds a dynamic *
 
 TaskFlow reorganizes your tasks across three dimensions — **Time**, **GTD**, and **Context** — to reduce decision-making friction and help you take action faster.
 
-</td>
+</td>  
 <td width="40%">
 
-<img src="./screenshot/split_full_en.png" width="100%" />
+![](./screenshot/split_full_en.png)
 
-</td>
-</tr>
+</td>  
+</tr>  
 </table>
-
-
 
 ### Features and Demonstration
 
-<div align="center">
-  <video src="https://github.com/user-attachments/assets/4787af2c-767d-4d2e-83e2-f6df92633920"
-         width="800"
-         controls
-         loop
-         muted>
-    您的浏览器不支持视频播放
-  </video>
-  <p><em>Features and Demonstration of TaskFlow</em></p>
+<div align="center">  
+  <video src="https://github.com/user-attachments/assets/4787af2c-767d-4d2e-83e2-f6df92633920"  
+         width="800"  
+         controls  
+         loop  
+         muted>  
+    Your browser does not support video playback  
+  </video>  
+  <p><em>Features and Demonstration of TaskFlow</em></p>  
 </div>
 
 ---
@@ -54,20 +53,14 @@ When it comes to task management in Obsidian, there are two powerful options wor
 ### Tasks
 
 - Tasks is already a powerful task management system.
-    
-    - It provides mature task syntax, powerful queries, and reliable rendering with excellent performance. There is no reason to reinvent the wheel.
-        
-    - However, Tasks is not designed as a **rich visual frontend**. Its task views and aggregation interfaces are functional, but relatively limited and not highly configurable.
-        
+  - It provides mature task syntax, powerful queries, and reliable rendering with excellent performance. There is no reason to reinvent the wheel.
+  - However, Tasks is not designed as a **rich visual frontend**. Its task views and aggregation interfaces are functional, but relatively limited and not highly configurable.
 
 ### TaskNotes
 
 - TaskNotes offers a powerful frontend experience.
-    
-    - But it comes with a fundamental assumption: **each task is represented by its own dedicated note**. This works extremely well when individual tasks need rich context, notes, properties, and supporting information.
-        
-    - But for a simple one-line task, creating an entire note can feel unnecessarily heavy.
-        
+  - But it comes with a fundamental assumption: **each task is represented by its own dedicated note**. This works extremely well when individual tasks need rich context, notes, properties, and supporting information.
+  - But for a simple one-line task, creating an entire note can feel unnecessarily heavy.
 
 I prefer to **keep tasks as simple list items directly inside my notes**.
 
@@ -153,17 +146,14 @@ Moving from **managing tasks** to **choosing actions**.
 TaskFlow uses information that already exists in your tasks to **narrow down your choices**, placing tasks into different action contexts:
 
 - **GTD → What should I do next?**
-    
-    Helps you find the next actionable step from your task list.
-    
+
+  Helps you find the next actionable step from your task list.
 - **Time → What should I do today?**
-    
-    Helps you identify what actually needs your attention today.
-    
+
+  Helps you identify what actually needs your attention today.
 - **Context → What can I do in this situation?**
-    
-    Helps you find tasks that fit your current environment, tools, or working context.
-    
+
+  Helps you find tasks that fit your current environment, tools, or working context.
 
 As a result:
 
@@ -192,35 +182,42 @@ TaskFlow ultimately aims to create one simple change:
 With TaskFlow, you don't just get a better-looking task panel. You get a different way of working with your tasks:
 
 - **No decision paralysis — just start:** Open Obsidian and stop staring at dozens of pending tasks. Quickly identify what is most relevant right now and get started.
-    
 - **Zero migration or learning cost:** Fully compatible with your existing Tasks syntax and data. Keep your current workflow and start using TaskFlow immediately.
-    
 - **Less willpower, more focus:** Minimize the mental effort spent choosing what to work on, and put your attention where it matters — into actually doing the work.
-    
 - **A smoother path into Flow:** By removing friction from the beginning of an action, TaskFlow helps your tasks move naturally and makes it easier for your mind to settle into a focused state.
-    
 
 ---
 
 ## 06｜Installation
 
-> **You can install TaskFlow via BRAT or manually.** If TaskFlow is listed in the Obsidian Community Plugins directory, you can also install it directly from there — just search for "TaskFlow" in **Settings → Community plugins → Browse**.
+> **TaskFlow is now available in the Obsidian Community Plugins directory.** The recommended way is to install it directly from there; you can also use BRAT or install manually.
 
 ---
 
-### Method 1: Install via BRAT (Recommended)
+### Method 1: Install from the Obsidian Community Plugins (Recommended)
 
-[BRAT](https://github.com/TfTHacker/obsidian42-brat) (**Beta Reviewers Auto-update Tool**) is a popular Obsidian community plugin for installing and automatically updating plugins that are not yet available in the Community Plugins directory.
+1. Open Obsidian → **Settings → Community plugins**
+2. Make sure **Safe mode** is turned off.
+3. Click **Browse**, then search for `TaskFlow`.
+4. Click **Install**, then **Enable**.
+
+> 💡 Installing from the Community Plugins directory gives you automatic updates with each new release.
+
+---
+
+### Method 2: Install via BRAT
+
+[BRAT](https://github.com/TfTHacker/obsidian42-brat) (**Beta Reviewers Auto-update Tool**) is a popular Obsidian community plugin for installing and automatically updating plugins.
 
 Once installed through BRAT, TaskFlow can **automatically follow updates from its GitHub repository**, so you don't need to download new releases manually.
 
 ### Steps
 
 1. **Install BRAT**
-    
-    - Open Obsidian → Settings → Community plugins → Browse
-    - Search for `BRAT`, find **Obsidian42 - BRAT**, then install and enable it.
-        
+   - Open Obsidian → Settings → Community plugins → Browse
+   - Search for `BRAT`, find **Obsidian42 - BRAT**, then install and enable it.
+
+
 2. **Add TaskFlow through BRAT**
     
     - Open the BRAT plugin.
@@ -238,7 +235,7 @@ Once installed through BRAT, TaskFlow can **automatically follow updates from it
 
 ---
 
-### Method 2: Manual Installation
+### Method 3: Manual Installation
 
 If you prefer not to use BRAT, you can download the plugin files directly from GitHub and install them manually.
 
@@ -278,6 +275,26 @@ If you prefer not to use BRAT, you can download the plugin files directly from G
     - Restart Obsidian, or press `Ctrl/Cmd + R` to reload it.
     - Go to Settings → Community plugins → Installed plugins.
     - Find **TaskFlow** and enable it.
+
+---
+
+## 07｜Recommended CSS Snippet
+
+I wrote a dedicated CSS snippet to polish the **task list styling** inside TaskFlow.
+
+Some users keep the default Tasks list styling when using TaskFlow, which doesn't quite match the plugin's interface. To make the whole experience more consistent, I put together a set of Tasks CSS styles tuned for TaskFlow, optimizing the task list with:
+
+- **Priority color coding**
+- **Compact layout**
+- **Single-line fade**
+- **Unified icons**
+- **Nested task fixes**
+
+If you're using TaskFlow, you can pair it with this snippet to unify the overall look and feel.
+
+> 🔗 CSS snippet: [TaskFlow Task List Enhancements](https://github.com/ichris007/obsidian-share-showcase/blob/main/CSS-snippets/TaskFlow%20Task%20List%20Enhancements.md)
+
+> 💡 To use it, copy the snippet into your vault's `.obsidian/snippets/` folder and enable it in **Settings → Appearance → CSS snippets**.
 
 ---
 

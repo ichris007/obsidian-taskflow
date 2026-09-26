@@ -181,12 +181,24 @@ TaskFlow 最终想带来的改变，可以浓缩成一句话：
 
 ## 06｜安装指南
 
-> **你可以通过 BRAT 或手动方式安装 TaskFlow。** 如果 TaskFlow 已上架 Obsidian 社区插件市场，你也可以直接从那里安装——在 **设置 → 社区插件 → 浏览** 中搜索 "TaskFlow" 即可。
+> **TaskFlow 已上架 Obsidian 社区插件市场**，推荐直接通过社区插件市场安装，当然你也可以选择 BRAT 或手动安装。
 
 ---
-### 方式一：通过 BRAT 插件安装（推荐）
 
-[BRAT](https://github.com/TfTHacker/obsidian42-brat)（Beta Reviewers Auto-update Tool）是 Obsidian 社区中用于安装和自动更新未上架插件的常用工具。使用 BRAT 安装后，插件可以**自动跟随 GitHub 仓库更新**，无需每次手动下载。
+### 方式一：通过 Obsidian 社区插件市场安装（推荐）
+
+1. 打开 Obsidian → **设置 → 社区插件**
+2. 确认已关闭 **安全模式（Safe mode）**
+3. 点击 **浏览**，搜索 `TaskFlow`
+4. 点击 **安装**，然后 **启用**
+
+> 💡 通过社区插件市场安装，每次新版本发布都会自动更新。
+
+---
+
+### 方式二：通过 BRAT 插件安装
+
+[BRAT](https://github.com/TfTHacker/obsidian42-brat)（Beta Reviewers Auto-update Tool）是 Obsidian 社区中用于安装和自动更新插件的常用工具。使用 BRAT 安装后，插件可以**自动跟随 GitHub 仓库更新**，无需每次手动下载。
 
 ### 步骤
 
@@ -209,7 +221,7 @@ TaskFlow 最终想带来的改变，可以浓缩成一句话：
 
 ---
 
-### 方式二：手动安装
+### 方式三：手动安装
 
 如果你不想使用 BRAT，也可以直接从 GitHub 下载文件手动放入插件目录。
 
@@ -244,6 +256,26 @@ TaskFlow 最终想带来的改变，可以浓缩成一句话：
     - 重启 Obsidian（或按 `Ctrl/Cmd + R` 重新加载）
     - 打开 设置 → 第三方插件 → 已安装插件
     - 找到 **TaskFlow**，打开开关
+
+---
+
+## 07｜推荐配套 CSS 样式
+
+我为 TaskFlow 的任务样式专门写了一个 CSS Snippet。
+
+我发现部分朋友使用 TaskFlow 时，仍然保留了 Tasks 默认的任务列表样式，整体视觉和 TaskFlow 的界面风格不太协调。所以我专门整理了一套适配 TaskFlow 的 Tasks CSS 样式，对任务列表进行了优化，包括：
+
+- **优先级配色**
+- **紧凑布局**
+- **单行渐隐**
+- **图标统一**
+- **嵌套任务修复**
+
+如果你正在使用 TaskFlow，可以搭配这套样式使用，让整体界面体验更加统一。
+
+> 🔗 CSS Snippet 地址：[TaskFlow Task List Enhancements](https://github.com/ichris007/obsidian-share-showcase/blob/main/CSS-snippets/TaskFlow%20Task%20List%20Enhancements.md)
+
+> 💡 使用方法：将 snippet 内容复制到库的 `.obsidian/snippets/` 目录，在 **设置 → 外观 → CSS 代码片段** 中启用即可。
 
 ---
 
